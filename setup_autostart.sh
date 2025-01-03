@@ -49,4 +49,4 @@ echo "Überprüfe den Status des Services..."
 sudo systemctl status $SERVICE_NAME
 
 echo "=== Einrichtung abgeschlossen! ==="
-echo "Dein Skript wird jetzt automatisch im Vollbildmodus beim Start des Raspberry Pi ausgeführt."
+echo "Spotify Desktop wird jetzt automatisch beim Start des Raspberry Pi gestartet."
