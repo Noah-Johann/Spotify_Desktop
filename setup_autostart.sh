@@ -1,52 +1,56 @@
 #!/bin/bash
 
-# Variablen
-SCRIPT_DIR=$(dirname "$(realpath "$0")")
-PYTHON_SCRIPT="$SCRIPT_DIR/main.py"
-SERVICE_NAME="main_script.service"
-SERVICE_FILE="/etc/systemd/system/$SERVICE_NAME"
-
-echo "=== Automatische Einrichtung des Systemd-Services für main.py ==="
-
-# Prüfe, ob die main.py existiert
-if [ ! -f "$PYTHON_SCRIPT" ]; then
-    echo "Fehler: $PYTHON_SCRIPT wurde nicht gefunden!"
-    echo "Bitte stelle sicher, dass die Datei main.py im gleichen Ordner wie dieses Skript existiert."
+# Prüfen ob das Skript mit root-Rechten ausgeführt wird
+if [ "$EUID" -ne 0 ]; then 
+    echo "Bitte Skript mit sudo ausführen"
+    echo "Beispiel: sudo ./setup.sh"
     exit 1
 fi
 
-# Erstelle die systemd-Service-Datei
-echo "Erstelle die systemd-Service-Datei..."
-sudo bash -c "cat > $SERVICE_FILE" <<EOL
+# Aktuelles Verzeichnis ermitteln
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Erstelle Service-Datei für systemd
+cat > /etc/systemd/system/python-fullscreen.service << EOF
 [Unit]
-Description=Python Main Script Autostart
-After=graphical.target
+Description=Python Fullscreen Autostart
+After=network.target
 
 [Service]
-ExecStart=/usr/bin/python3 $PYTHON_SCRIPT
-WorkingDirectory=$SCRIPT_DIR
-StandardOutput=inherit
-StandardError=inherit
-Restart=always
-User=pi
 Environment=DISPLAY=:0
+Environment=XAUTHORITY=/home/pi/.Xauthority
+User=pi
+WorkingDirectory=$SCRIPT_DIR
+ExecStart=/usr/bin/python3 -c '
+import tkinter as tk
+import os
+import sys
+
+root = tk.Tk()
+root.attributes("-fullscreen", True)
+root.config(cursor="none")  # Versteckt den Mauszeiger
+
+# Füge das aktuelle Verzeichnis zum Python-Pfad hinzu
+program_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(program_dir)
+
+# Importiere das Hauptprogramm
+import main
+'
+Restart=always
+RestartSec=10
 
 [Install]
-WantedBy=graphical.target
-EOL
+WantedBy=multi-user.target
+EOF
 
-# Berechtigungen setzen und Service aktivieren
-echo "Lade die Systemd-Daemon-Konfiguration neu..."
-sudo systemctl daemon-reload
+# Aktiviere den Autostart des X-Servers für den pi Benutzer
+raspi-config nonint do_boot_behaviour B4
 
-echo "Aktiviere den Service $SERVICE_NAME..."
-sudo systemctl enable $SERVICE_NAME
+# Aktiviere und starte den Service
+systemctl enable python-fullscreen.service
+systemctl start python-fullscreen.service
 
-echo "Starte den Service $SERVICE_NAME..."
-sudo systemctl start $SERVICE_NAME
-
-echo "Überprüfe den Status des Services..."
-sudo systemctl status $SERVICE_NAME
-
-echo "=== Einrichtung abgeschlossen! ==="
-echo "Spotify Desktop wird jetzt automatisch beim Start des Raspberry Pi gestartet."
+echo "Installation erfolgreich!"
+echo "Spotify wird nun automatisch im Vollbildmodus gestartet"
+echo "Um den Autostart zu deaktivieren, führe aus: sudo systemctl disable python-fullscreen.service"
