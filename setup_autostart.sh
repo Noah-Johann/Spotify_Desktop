@@ -21,7 +21,7 @@ Environment=DISPLAY=:0
 Environment=XAUTHORITY=/home/pi/.Xauthority
 User=pi
 WorkingDirectory=$SCRIPT_DIR
-ExecStart=/usr/bin/python3 -c '
+ExecStart=$SCRIPT_DIR/venv/bin/python3 -c '
 import tkinter as tk
 import os
 import sys
@@ -54,3 +54,4 @@ systemctl start python-fullscreen.service
 echo "Installation erfolgreich!"
 echo "Spotify wird nun automatisch im Vollbildmodus gestartet"
 echo "Um den Autostart zu deaktivieren, führe aus: sudo systemctl disable python-fullscreen.service"
+
