@@ -1,7 +1,16 @@
 certifi==2024.12.14
+charset-normalizer==3.4.1
+colorzero==2.0
+customtkinter==5.2.2
+darkdetect==0.8.0
+gpiozero==2.0.1
+idna==3.10
 numpy==2.2.1
 packaging==24.2
 pillow==11.1.0
 pycairo==1.27.0
+redis==5.2.1
+requests==2.32.3
 scipy==1.15.1
-wheel @ file:///opt/homebrew/Cellar/python%403.13/3.13.1/libexec/wheel-0.45.1-py3-none-any.whl#sha256=da46333d5dcbde6e20cf7e2f8fff9e9ce76e8c94dc4afd6fb95fc4bc2745fb5e
+spotipy==2.25.0
+urllib3==2.3.0
