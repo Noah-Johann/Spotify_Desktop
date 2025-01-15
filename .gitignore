@@ -3,3 +3,4 @@ venv/
 .venv/
 assets/
 __pycache__
+client.py 
