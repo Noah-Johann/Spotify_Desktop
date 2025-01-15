@@ -15,7 +15,7 @@ print(len(characters))
 def buttonpress(self):
     if main.display==0:
         self.letter_selector.current_idx = (self.letter_selector.current_idx + 1) % len(self.letter_selector.letters)
-        self.letter_selector.update_letters()
+        selected_character.update_letters()
     else:
         #pause playback 
         print("placeholder")
