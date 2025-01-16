@@ -14,8 +14,9 @@ print(len(characters))
 
 def buttonpress(self):
     if main.display==0:
-        self.letter_selector.current_idx = (self.letter_selector.current_idx + 1) % len(self.letter_selector.letters)
-        selected_character.update_letters()
+        #select character
+        print("placeholder")                                         #Problem mit der Auswahl des Buchstabens im Webbrowser
+        #selected_character.update_letters()
     else:
         #pause playback 
         print("placeholder")
@@ -24,7 +25,7 @@ def buttonpress(self):
 
 def change_character_plus():
     selected_character += 1
-    if selected_character >= len(characters):
+    if selected_character > len(characters):
         selected_character = len(characters)  
     if selected_character < 0:
         selected_character = 0
@@ -42,41 +43,6 @@ def change_character_minus():
 
 button.when_pressed = buttonpress
 rotary.when_rotated = change_character_plus         #Weg finden um Rotierungsrichtung einzubinden
-
-
-"""
-
-def on_rotate_clockwise(self):
-        if self.is_login_screen:
-            self.letter_selector.current_idx = (self.letter_selector.current_idx + 1) % len(self.letter_selector.letters)
-            self.letter_selector.update_letters()
-        else:
-            try:
-                current = self.sp.current_playback()
-                if current and current.get('device'):
-                    current_volume = current['device'].get('volume_percent', 0)
-                    self.sp.volume(min(100, current_volume + 5))
-            except Exception as e:
-                self.logger.error(f"Error adjusting volume: {e}")
-    
-def on_rotate_counterclockwise(self):
-    if self.is_login_screen:
-        self.letter_selector.current_idx = (self.letter_selector.current_idx - 1) % len(self.letter_selector.letters)
-        self.letter_selector.update_letters()
-    else:
-        current_volume = self.sp.current_playback()['device']['volume_percent']
-        self.sp.volume(max(0, current_volume - 5))
-    
-def buttonpress(self):
-    if self.is_login_screen:
-        self.password_display.insert("end", self.letter_selector.letters[self.letter_selector.current_idx])
-    else:
-        if self.sp.current_playback()['is_playing']:
-            self.sp.pause_playback()
-        else:
-            self.sp.start_playback()
-
-"""
 
 
 
