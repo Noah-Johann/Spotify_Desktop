@@ -4,3 +4,9 @@ venv/
 assets/
 __pycache__
 client.py 
+.cache
+.vscode
+.idea
+*.pyc
+*.pyo
+*.pyd
