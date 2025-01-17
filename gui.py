@@ -7,7 +7,6 @@ from typing import Optional
 import logging
 import threading
 import sys
-import time
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout
 from PyQt6.QtCore import Qt
 
@@ -43,8 +42,6 @@ def start_app():
             config.spotify_client = spotify
             print("Authentication successful")
             
-            # Wait for webview to fully close
-            time.sleep(2)
         
         # Create GUI in a separate step
         app, window = create_gui()
