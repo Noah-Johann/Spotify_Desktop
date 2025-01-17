@@ -1,45 +1,58 @@
 from PIL import Image, ImageDraw, ImageFont
 import customtkinter as ctk 
-from tkinter import *
-from PIL import Image, ImageTk
 import colorsys
-from PIL import Image
 import numpy as np
 import requests
 from typing import Optional
 import logging
 import threading
+import sys
+import time
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout
+from PyQt6.QtCore import Qt
 
 import config
 import auth
 
-
-
-def create_window():
-    # First handle authentication
-    if config.display == 0:
-        print("Starting authentication...")
-        auth.login()  # Run auth first in main thread
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Spotify Controller")
+        self.setGeometry(100, 100, 800, 480)
         
-    # Then create GUI
-    root = ctk.CTk()
-    root.geometry("800x480")
-    root.title("Spotify Controller")
-    ctk.set_appearance_mode("#000000")
+        # Create central widget and layout
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        layout = QVBoxLayout(central_widget)
 
-    if config.display == 0:
-        login_screen()
-    if config.display == 1:
-        playback_screen()
+def create_gui():
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+    return app, window
 
-    root.mainloop()  # Run GUI mainloop in main thread
-
-def login_screen():
-    #root.configure(bg="#ffffff")
-    print("loginscreen")
-
-def playback_screen():
-    config.display = 1
+def start_app():
+    try:
+        # Handle authentication first
+        if config.display == 0:
+            print("Starting authentication...")
+            spotify = auth.login()
+            if not spotify:
+                print("Authentication failed")
+                return
+            config.spotify_client = spotify
+            print("Authentication successful")
+            
+            # Wait for webview to fully close
+            time.sleep(2)
+        
+        # Create GUI in a separate step
+        app, window = create_gui()
+        sys.exit(app.exec())
+        
+    except Exception as e:
+        print(f"Fatal error: {e}")
+        sys.exit(1)
 
 
 
