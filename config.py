@@ -1,5 +1,6 @@
 from gpiozero import RotaryEncoder, Button
-
+import sys
+from PyQt6.QtWidgets import QApplication
 #Aktuelle Anzeige
 display=0           #0=Login; 1=Playback; 
 
@@ -12,4 +13,5 @@ selected_character = 0
 #button = Button(27)                                                 #Vorläufiger GPIO Pin für den Button
 #rotary = RotaryEncoder(a=17, b= 18, max_steps=len(characters))      #Vorläufiger GPIO Pin für den Rotary Encoder
 
-spotify_client = None  # Will store the Spotify client instance
+
+redirect="http://localhost:8888/callback"
