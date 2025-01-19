@@ -17,6 +17,8 @@ selected_character = 0
 
 redirect="http://localhost:8888/callback"
 
+
+
 auth_web = QWebEngineView()
 auth_url = None
 spotify_client = None
@@ -26,3 +28,6 @@ user=None
 playback=None
 track=None
 album_art=None
+art_label=None
+
+initial=True

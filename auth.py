@@ -15,10 +15,10 @@ auth_manager = SpotifyOAuth(
 
 def auth():
     tokencheck = check_token()
-    print(tokencheck)
+    #print(tokencheck)
 
-    if tokencheck == None:
-        print("Starting login...")
+    if tokencheck == None:      #Means no token or token expired
+        print("Tokencheck = None, starting login...")
         login()
         return None
     # Create Spotify client
@@ -33,7 +33,7 @@ def auth():
     
 
 def login():
-    print("Starting login...")
+    print("Starting def login...")
     print("Getting auth URL...")
     config.auth_url = auth_manager.get_authorize_url()
     
@@ -50,23 +50,17 @@ def login():
             print("Access Token received")
             
             
-            
             # Close auth window
             config.display = 1
             config.auth_web.close()
+            config.spotify_client = Spotify(auth_manager=auth_manager)
+            
     
     # Connect URL change signal
     config.auth_web.urlChanged.connect(handle_url_change)
+    print("Auth url change connected")
     
     print(f"Auth URL: {config.auth_url}")
-
-    
-    
-    
-
-
-
-
 
 
 def check_token():

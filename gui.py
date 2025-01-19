@@ -1,8 +1,5 @@
 import colorsys
-import numpy as np
 import requests
-from typing import Optional
-import logging
 import threading
 import sys
 from PyQt6.QtCore import Qt, QUrl
@@ -30,28 +27,35 @@ class MainWindow(QMainWindow):
         #self.setWindowIcon(Qt.WindowIcon.fromTheme("spotify"))
         self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
         self.setStyleSheet("background-color: black")
-        # Create central widget and layout
-        #central_widget = QWidget()
-        #self.setCentralWidget(central_widget)
-        #layout = QVBoxLayout(central_widget)
-        print(config.display)
-        #while config.display == 1:
-           # get_play_info()
         
+        # Create central widget
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
         
-                
+        # Create layout
+        layout = QVBoxLayout(central_widget)
         
+        # Create album art label
+        config.art_label = QLabel()
+        config.art_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(config.art_label)
+        
+# Update album art if available
+def update_album_art():
+    if config.album_art:
+        config.art_label.setPixmap(config.album_art.scaled(300, 300, Qt.AspectRatioMode.KeepAspectRatio))
 
 def start_app():
     try:
         # Handle authentication
-        print("Starting authentication...")
+        print("Starting auth.py")
 
         #Checks for successful authentication
-        spotify = auth.auth()
-        print(spotify)
+        config.spotify_client = auth.auth()
+        print(config.spotify_client)
         
-        if spotify == None:
+        # Opens login website if authentication failed
+        if config.spotify_client == None:
             print("Resived authentication url, starting login website...")
             config.auth_web.setUrl(QUrl(config.auth_url))
             config.auth_web.setWindowTitle("Spotify Login")
@@ -59,22 +63,25 @@ def start_app():
             config.auth_web.setWindowFlag(Qt.WindowType.FramelessWindowHint)
             config.auth_web.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint)
             config.auth_web.show()
+            print(config.display)
 
             #For Raspberry Pi
             #config.auth_web.showFullScreen()
 
-
         # Set up Spotify client
-        config.spotify_client = spotify
-
+        #config.spotify_client = config.spotify
         
-        threading.Thread(target=access_play_info, daemon=True).start()
+        # Get initial playback info
+        #config.initial = True
+        #get_play_info()
         
         # Create main window 
         config.window = create_gui()
-
-
-        #get_play_info()
+        
+        # Start background thread for updates
+        print("After create gui")
+        config.initial = False
+        threading.Thread(target=access_play_info, daemon=True).start()
         
         # Start event loop
         sys.exit(qt_app.exec())
@@ -96,30 +103,25 @@ def create_gui():
 
 def get_play_info():
     # Get user info
-    try:
-        user = config.spotify_client.current_user()
-        print(f"Logged in as: {user['display_name']}")
+    if config.display != 0:
+        config.user = config.spotify_client.current_user()
+        print(f"Logged in as: {config.user['display_name']}")
             
         # Get current playback
-        playback = config.spotify_client.current_playback()
-        if playback:
-            track = playback['item']
-            print(f"Now Playing: {track['name']} by {track['artists'][0]['name']}")
-            print(f"Progress: {playback['progress_ms']}/{track['duration_ms']}ms")
-                
-            # Get and display album art
-            #album_art = get_album_art(track)
-            #if album_art:
-                #art_label = QLabel()
-                #art_label.setPixmap(album_art.scaled(300, 300, Qt.AspectRatioMode.KeepAspectRatio))
-                #art_label.move(50, 50)  # Position the artwork
-                #art_label.show()
-                
+        config.playback = config.spotify_client.current_playback()
+        if config.playback:
+            config.track = config.playback['item']
+            print(f"Now Playing: {config.track['name']} by {config.track['artists'][0]['name']}")
+            print(f"Progress: {config.playback['progress_ms']}/{config.track['duration_ms']}ms")
+            config.album_art = get_album_art(config.track)
+            if config.initial == False:
+                update_album_art()
+            
         else:
             print("Nothing playing")
 
-    except Exception as e:
-            print(f"Error getting info: {e}")
+    #except Exception as e:
+            #print(f"Error getting info: {e}")
 
 
 def get_album_art(track):
@@ -139,6 +141,7 @@ def get_album_art(track):
     return None
 
 def access_play_info():
-    while config.display == 1:
+    access = True       #Endless loop
+    while access == True:
         get_play_info()
         sleep(1)
