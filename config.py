@@ -20,3 +20,4 @@ redirect="http://localhost:8888/callback"
 auth_web = QWebEngineView()
 auth_url = None
 spotify_client = None
+window = None
