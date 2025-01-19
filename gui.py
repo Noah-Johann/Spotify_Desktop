@@ -8,8 +8,9 @@ import logging
 import threading
 import sys
 from PyQt6.QtCore import Qt, QUrl
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel
 from PyQt6.QtWebEngineWidgets import QWebEngineView
+from PyQt6.QtGui import QPixmap
 
 # Set attribute before ANY QApplication creation
 QApplication.setAttribute(Qt.ApplicationAttribute.AA_ShareOpenGLContexts)
@@ -18,6 +19,8 @@ qt_app = QApplication(sys.argv)
 
 import config
 import auth
+
+
 
 class MainWindow(QMainWindow):
     # Setup the main window
@@ -33,27 +36,12 @@ class MainWindow(QMainWindow):
         #self.setCentralWidget(central_widget)
         #layout = QVBoxLayout(central_widget)
         
-        # Get user info
-        try:
-            user = config.spotify_client.current_user()
-            print(f"Logged in as: {user['display_name']}")
-            
-            # Get current playback
-            playback = config.spotify_client.current_playback()
-            if playback:
-                track = playback['item']
-                print(f"Now Playing: {track['name']} by {track['artists'][0]['name']}")
-                print(f"Progress: {playback['progress_ms']}/{track['duration_ms']}ms")
-            else:
-                print("Nothing playing")
+        
                 
-        except Exception as e:
-            print(f"Error getting info: {e}")
+        
 
 def start_app():
     try:
-
-        
         # Handle authentication
         print("Starting authentication...")
 
@@ -70,7 +58,7 @@ def start_app():
             config.auth_web.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint)
             config.auth_web.show()
 
-
+        # Set up Spotify client
         config.spotify_client = spotify
 
         
@@ -91,8 +79,52 @@ def start_app():
         sys.exit(1)
 
 
-
 def create_gui():
+
     config.window = MainWindow()
     config.window.show()
     return config.window
+
+
+def get_play_info():
+    # Get user info
+        try:
+            user = config.spotify_client.current_user()
+            print(f"Logged in as: {user['display_name']}")
+            
+            # Get current playback
+            playback = config.spotify_client.current_playback()
+            if playback:
+                track = playback['item']
+                print(f"Now Playing: {track['name']} by {track['artists'][0]['name']}")
+                print(f"Progress: {playback['progress_ms']}/{track['duration_ms']}ms")
+                
+                # Get and display album art
+                album_art = get_album_art(track)
+                if album_art:
+                    art_label = QLabel()
+                    art_label.setPixmap(album_art.scaled(300, 300, Qt.AspectRatioMode.KeepAspectRatio))
+                    art_label.move(50, 50)  # Position the artwork
+                
+            else:
+                print("Nothing playing")
+
+        except Exception as e:
+            print(f"Error getting info: {e}")
+
+
+def get_album_art(track):
+    try:
+        # Get album art URL (largest size)
+        art_url = track['album']['images'][0]['url']
+        
+        # Download image
+        response = requests.get(art_url)
+        if response.status_code == 200:
+            # Convert to QPixmap for display
+            pixmap = QPixmap()
+            pixmap.loadFromData(response.content)
+            return pixmap
+    except Exception as e:
+        print(f"Error getting album art: {e}")
+    return None
