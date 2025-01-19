@@ -73,6 +73,7 @@ def check_token():
     token_info = auth_manager.cache_handler.get_cached_token()
     if token_info and not auth_manager.is_token_expired(token_info):
         print("Using cached token")
+        config.display = 1
         return token_info
     else:
         print("No cached token or token expired")
