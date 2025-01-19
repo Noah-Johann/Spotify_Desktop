@@ -1,6 +1,7 @@
 from gpiozero import RotaryEncoder, Button
 import sys
 from PyQt6.QtWidgets import QApplication
+from PyQt6.QtWebEngineWidgets import QWebEngineView
 #Aktuelle Anzeige
 display=0           #0=Login; 1=Playback; 
 
@@ -15,3 +16,7 @@ selected_character = 0
 
 
 redirect="http://localhost:8888/callback"
+
+auth_web = QWebEngineView()
+auth_url = None
+spotify_client = None
