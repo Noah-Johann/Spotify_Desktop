@@ -7,7 +7,7 @@ from typing import Optional
 import logging
 import threading
 import sys
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QUrl
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 
@@ -46,7 +46,14 @@ def start_app():
             
         config.spotify_client = spotify
         print("Resived authentication url, starting login website...")
-        
+        #Hier muss auth_url in QTwebengine geladen werden
+        config.auth_web.setUrl(QUrl(config.auth_url))
+        config.auth_web.setWindowTitle("Spotify Login")
+        config.auth_web.resize(800, 480)
+        config.auth_web.show()
+
+
+
         # Create main window after authentication
         window = create_gui()
         

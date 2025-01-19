@@ -1,4 +1,3 @@
-
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyOAuth
 import client
@@ -12,9 +11,6 @@ import sys
 
 import config
 
-auth_url = None
-spotify_client = None
-auth_web = QWebEngineView()
 
 auth_manager = SpotifyOAuth(
         client_id=client.clientID,
@@ -24,16 +20,13 @@ auth_manager = SpotifyOAuth(
 )
 
 def auth():
-    token =check_token()
-    #if not auth_manager.is_token_valid():
-        #print("Token expired, refreshing...")
-        #login()
+    token = check_token()
 
     if token == None:
         print("Starting login...")
         login()
 
-    return spotify_client
+    return config.spotify_client
 
    
     
@@ -41,10 +34,10 @@ def auth():
 def login():
     print("Starting login...")
     print("Getting auth URL...")
-    auth_url = auth_manager.get_authorize_url()
-    spotify_client = Spotify(auth_manager=auth_manager)
+    config.auth_url = auth_manager.get_authorize_url()
+    config.spotify_client = Spotify(auth_manager=auth_manager)
 
-    print(f"Auth URL: {auth_url}")
+    print(f"Auth URL: {config.auth_url}")
 
     
     
