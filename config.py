@@ -21,3 +21,8 @@ auth_web = QWebEngineView()
 auth_url = None
 spotify_client = None
 window = None
+
+user=None
+playback=None
+track=None
+album_art=None
