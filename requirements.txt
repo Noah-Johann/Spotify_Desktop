@@ -4,9 +4,7 @@ certifi==2024.12.14
 charset-normalizer==3.4.1
 click==8.1.8
 colorzero==2.0
-customtkinter==5.2.2
 darkdetect==0.8.0
-Flask==3.1.0
 gpiozero==2.0.1
 idna==3.10
 itsdangerous==2.2.0
@@ -190,4 +188,3 @@ scipy==1.15.1
 spotipy==2.25.0
 typing_extensions==4.12.2
 urllib3==2.3.0
-Werkzeug==3.1.3
