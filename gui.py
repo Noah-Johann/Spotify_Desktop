@@ -68,19 +68,12 @@ def start_app():
             #For Raspberry Pi
             #config.auth_web.showFullScreen()
 
-        # Set up Spotify client
-        #config.spotify_client = config.spotify
-        
-        # Get initial playback info
-        #config.initial = True
-        #get_play_info()
-        
+
         # Create main window 
         config.window = create_gui()
         
         # Start background thread for updates
         print("After create gui")
-        config.initial = False
         threading.Thread(target=access_play_info, daemon=True).start()
         
         # Start event loop

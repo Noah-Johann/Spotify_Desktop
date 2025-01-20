@@ -28,5 +28,3 @@ playback=None
 track=None
 album_art=None
 art_label=None
-
-initial=True

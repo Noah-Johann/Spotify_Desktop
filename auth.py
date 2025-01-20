@@ -14,18 +14,15 @@ auth_manager = SpotifyOAuth(
 )
 
 def auth():
-    tokencheck = check_token()
-    #print(tokencheck)
+    tokencheck = check_token()    #Checks if token is valid
 
     if tokencheck == None:      #Means no token or token expired
         print("Tokencheck = None, starting login...")
-        login()
+        login()                   #Starts new login
         return None
     # Create Spotify client
     config.spotify_client = Spotify(auth_manager=auth_manager)
-    print(Spotify(auth_manager=auth_manager))
     print(config.spotify_client)
-    #config.spotify_client = Spotify(auth_manager=auth_manager)
 
     return config.spotify_client
 
@@ -35,14 +32,15 @@ def auth():
 def login():
     print("Starting def login...")
     print("Getting auth URL...")
+    # Creates auth URL
     config.auth_url = auth_manager.get_authorize_url()
     
     # Setup URL change handler
     def handle_url_change(url):
         url_str = url.toString()
-        # Check if redirect URL is in URL
+        # Check if redirect URL is in redirect URL
         if config.redirect in url_str and 'code=' in url_str:
-            # Extract code from URL
+            # Extract code from redirect URL
             code = url_str.split('code=')[1].split('&')[0]
             
             # Get token
