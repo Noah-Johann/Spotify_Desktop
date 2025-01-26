@@ -28,3 +28,9 @@ playback=None
 track=None
 album_art=None
 art_label=None
+
+# Initialize state variables
+initial = False
+current_track = None
+previous_track = None
+is_playing = False
