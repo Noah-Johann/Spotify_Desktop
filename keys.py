@@ -4,6 +4,7 @@ import pyautogui
 import time
 
 import config
+import gui
 
 
 print(len(config.characters))
@@ -62,29 +63,32 @@ def send_char_to_spotify(selected_char):
     time.sleep(2)
     pyautogui.write(config.characters[config.selected_character])
 
+def check_Button():
+
+    if config.rotary.when_rotated_clockwise:
+        if config.display == 0:
+            change_character_plus()
+
+        elif config.display == 1:
+            print("Louder")
+            gui.get_play_info()
 
 
-if config.rotary.when_rotated_clockwise:
-    if config.display == 0:
-        change_character_plus()
+    if config.rotary.when_rotated_counterclockwise:
+        if config.display == 0:
+            change_character_minus()
 
-    elif config.display == 1:
-        print("Louder")
-
-
-if config.rotary.when_rotated_counterclockwise:
-    if config.display == 0:
-        change_character_minus()
-
-    elif config.display == 1:
-        print("Quieter")
+        elif config.display == 1:
+            print("Quieter")
+            gui.get_play_info()
 
 
-if config.button.when_pressed:
-    if config.display == 0:
-        select_char()
+    if config.button.when_pressed:
+        if config.display == 0:
+            select_char()
     
-    elif config.display == 1:
-        pause_playback()
+        elif config.display == 1:
+            pause_playback()
+            gui.get_play_info()
+            
 
-pause()
