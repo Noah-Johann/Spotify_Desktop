@@ -39,7 +39,7 @@ def change_character_plus():
 
 def change_volume_plus():
     if config.spotify_client:
-        config.spotify_client.volume() = config.spotify_client.volume() + 5
+        config.spotify_client.volume() == config.spotify_client.volume() + 5
 
 
 def change_character_minus():
@@ -55,7 +55,7 @@ def change_character_minus():
 
 def change_volume_minus():
     if config.spotify_client:
-        config.spotify_client.volume() = config.spotify_client.volume() - 5 
+        config.spotify_client.volume() == config.spotify_client.volume() - 5 
         
 
 def send_char_to_spotify(selected_char):
