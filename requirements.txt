@@ -17,10 +17,6 @@ proxy_tools==0.1.0
 PyAutoGUI==0.9.54
 PyGetWindow==0.0.9
 PyMsgBox==1.0.9
-PyQt6==6.6.1
-PyQt6-Qt6==6.6.1
-PyQt6-sip==13.6.0
-PyQt6-WebEngine==6.6.0
 pyperclip==1.9.0
 PyRect==0.2.0
 PyScreeze==0.1.30

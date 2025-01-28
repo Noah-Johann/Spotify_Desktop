@@ -1,7 +1,6 @@
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyOAuth
 import client
-from urllib.parse import urlparse, parse_qs
 
 import config
 
