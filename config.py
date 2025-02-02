@@ -13,7 +13,7 @@ selected_character = 0
 #button = Button(27)                                                 #Vorläufiger GPIO Pin für den Button
 #rotary = RotaryEncoder(a=17, b= 18, max_steps=len(characters))      #Vorläufiger GPIO Pin für den Rotary Encoder
 
-
+redirect = "http://localhost:8888/callback"
 
 
 auth_web = QWebEngineView()

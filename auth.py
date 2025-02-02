@@ -8,7 +8,7 @@ import config
 auth_manager = SpotifyOAuth(
         client_id=client.clientID,
         client_secret=client.clientSecret,
-        redirect_uri="http://localhost:8888/callback",
+        redirect_uri=config.redirect,
         scope="user-read-playback-state user-modify-playback-state",
 )
 
