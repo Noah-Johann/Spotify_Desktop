@@ -148,5 +148,12 @@ def update_album_art():
 def access_play_info():
     access = True       #Endless loop
     while access == True:
-        get_play_info()
-        sleep(1)
+        try:
+            get_play_info()
+            sleep(1)
+        except requests.exceptions.ReadTimeout:
+            print("Request timed out. Retrying in 3 seconds...")
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+    
+            #sleep(1)  # Increase sleep time to reduce API stress
