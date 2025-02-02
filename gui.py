@@ -13,11 +13,11 @@ QApplication.setAttribute(Qt.ApplicationAttribute.AA_ShareOpenGLContexts)
 # Defining qt app
 qt_app = QApplication(sys.argv)
 
+# Only import config and auth AFTER QApplication is created
 import config
 import auth
 
-
-
+# Define main window
 class MainWindow(QMainWindow):
     # Setup the main window
     def __init__(self):
@@ -40,10 +40,7 @@ class MainWindow(QMainWindow):
         config.art_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(config.art_label)
         
-# Update album art if available
-def update_album_art():
-    if config.album_art:
-        config.art_label.setPixmap(config.album_art.scaled(300, 300, Qt.AspectRatioMode.KeepAspectRatio))
+
 
 def start_app():
     try:
@@ -51,12 +48,12 @@ def start_app():
         print("Starting auth.py")
 
         #Checks for successful authentication
-        config.spotify_client = auth.auth()
+        config.spotify_client = auth.auth() #opens the def auth() from auth.py
         print(config.spotify_client)
         
         # Opens login website if authentication failed
         if config.spotify_client == None:
-            print("Resived authentication url, starting login website...")
+            print("Spotify_client == None, resived authentication url, starting login website...")
             config.auth_web.setUrl(QUrl(config.auth_url))
             config.auth_web.setWindowTitle("Spotify Login")
             config.auth_web.resize(800, 480)
@@ -74,6 +71,8 @@ def start_app():
         
         # Start background thread for updates
         print("After create gui")
+
+        # Start background thread for resiving play info
         threading.Thread(target=access_play_info, daemon=True).start()
         
         # Start event loop
@@ -95,23 +94,28 @@ def create_gui():
 
 
 def get_play_info():
-    # Get user info
-    if config.display != 0:
-        config.user = config.spotify_client.current_user()
-        print(f"Logged in as: {config.user['display_name']}")
+    if config.display != 0:     #If display is not set to 0 (Authentication)
+
+        # Get user info
+        if config.user != config.spotify_client.current_user(): #If user is not the same as the current user
+            config.user = config.spotify_client.current_user()
+            print(f"Logged in as: {config.user['display_name']}")
             
         # Get current playback
-        config.playback = config.spotify_client.current_playback()
-        if config.playback:
+        config.playback = config.spotify_client.current_playback()  # Resives the current playback from spotify api
+
+        if config.playback and config.playback['item']:  # Check if there's a track (not an ad)
             config.track = config.playback['item']
             print(f"Now Playing: {config.track['name']} by {config.track['artists'][0]['name']}")
             print(f"Progress: {config.playback['progress_ms']}/{config.track['duration_ms']}ms")
-            config.album_art = get_album_art(config.track)
-            if config.initial == False:
-                update_album_art()
             
+
+            if config.old_track == None or config.track['name'] != config.old_track['name']:
+                config.old_track = config.track
+                config.album_art = get_album_art(config.track)
+                update_album_art()
         else:
-            print("Nothing playing")
+            print("Nothing playing or advertisement playing")
 
     #except Exception as e:
             #print(f"Error getting info: {e}")
@@ -120,6 +124,7 @@ def get_play_info():
 def get_album_art(track):
     try:
         # Get album art URL (largest size)
+        print("Getting album art")
         art_url = track['album']['images'][0]['url']
         
         # Download image
@@ -132,6 +137,13 @@ def get_album_art(track):
     except Exception as e:
         print(f"Error getting album art: {e}")
     return None
+
+
+# Update album art if available
+def update_album_art():
+    if config.album_art:
+        config.art_label.setPixmap(config.album_art.scaled(300, 300, Qt.AspectRatioMode.KeepAspectRatio))
+
 
 def access_play_info():
     access = True       #Endless loop
