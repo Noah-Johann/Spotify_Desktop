@@ -2,11 +2,13 @@ import colorsys
 import requests
 import threading
 import sys
-from PyQt6.QtCore import Qt, QUrl
+from PyQt6.QtCore import Qt, QUrl, QBuffer, QByteArray
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel
-from PyQt6.QtWebEngineWidgets import QWebEngineView
-from PyQt6.QtGui import QPixmap
+from PyQt6.QtWebEngineWidgets import QWebEngineView 
+from PyQt6.QtGui import QPixmap, QColor
 from time import sleep
+from PIL import Image
+import io
 
 # Set attribute before ANY QApplication creation
 QApplication.setAttribute(Qt.ApplicationAttribute.AA_ShareOpenGLContexts)
@@ -114,6 +116,7 @@ def get_play_info():
                 config.old_track = config.track
                 config.album_art = get_album_art(config.track)
                 update_album_art()
+                get_color()
         else:
             print("Nothing playing or advertisement playing")
 
@@ -156,4 +159,70 @@ def access_play_info():
         except Exception as e:
             print(f"Unexpected error: {e}")
     
-            #sleep(1)  # Increase sleep time to reduce API stress
+
+def get_color():
+    if config.album_art:
+        try:
+            # Convert QPixmap to bytes using QBuffer
+            byte_array = QByteArray()
+            buffer = QBuffer(byte_array)
+            buffer.open(QBuffer.OpenModeFlag.WriteOnly)
+            config.album_art.save(buffer, "PNG")
+            
+            # Open image with PIL
+            img = Image.open(io.BytesIO(byte_array.data()))
+            
+            # Convert to RGB if necessary
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+            
+            # Get the size of the image
+            width, height = img.size
+            
+            # Sample pixels from the edges
+            edge_pixels = []
+            
+            # Sample from all edges
+            for x in range(0, width, 10):  # Top and bottom edges
+                edge_pixels.extend([
+                    img.getpixel((x, 0)),             # Top edge
+                    img.getpixel((x, height - 1))     # Bottom edge
+                ])
+            
+            for y in range(0, height, 10):  # Left and right edges
+                edge_pixels.extend([
+                    img.getpixel((0, y)),             # Left edge
+                    img.getpixel((width - 1, y))      # Right edge
+                ])
+            
+            # Calculate average color from edges
+            avg_r = sum(pixel[0] for pixel in edge_pixels) // len(edge_pixels)
+            avg_g = sum(pixel[1] for pixel in edge_pixels) // len(edge_pixels)
+            avg_b = sum(pixel[2] for pixel in edge_pixels) // len(edge_pixels)
+            
+            # Create a darker version for better contrast
+            background_color = QColor(
+                int(avg_r * 0.3),  # Making it quite dark for better contrast
+                int(avg_g * 0.3),
+                int(avg_b * 0.3)
+            )
+            
+            # Create gradient CSS
+            gradient_style = (
+                "background: qlineargradient(x1:0, y1:0, x2:1, y2:1,"
+                f"stop:0 rgb({avg_r}, {avg_g}, {avg_b}),"
+                f"stop:1 rgb({background_color.red()}, {background_color.green()}, {background_color.blue()}))"
+            )
+            
+            # Set window background
+            if config.window:
+                config.window.setStyleSheet(gradient_style)
+            
+            # Clean up
+            buffer.close()
+                
+        except Exception as e:
+            print(f"Error getting dominant color: {e}")
+            # Fallback to black background
+            if config.window:
+                config.window.setStyleSheet("background-color: black")
