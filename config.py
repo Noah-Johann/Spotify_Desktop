@@ -1,5 +1,4 @@
 from gpiozero import RotaryEncoder, Button
-import sys
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 #Aktuelle Anzeige
@@ -15,8 +14,6 @@ selected_character = 0
 #rotary = RotaryEncoder(a=17, b= 18, max_steps=len(characters))      #Vorläufiger GPIO Pin für den Rotary Encoder
 
 
-redirect="http://localhost:8888/callback"
-
 
 
 auth_web = QWebEngineView()
@@ -28,9 +25,7 @@ playback=None
 track=None
 album_art=None
 art_label=None
-
-# Initialize state variables
-initial = False
+old_track = None
 current_track = None
 previous_track = None
 is_playing = False
