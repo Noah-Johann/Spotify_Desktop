@@ -13,19 +13,35 @@ selected_character = 0
 #button = Button(27)                                                 #Vorläufiger GPIO Pin für den Button
 #rotary = RotaryEncoder(a=17, b= 18, max_steps=len(characters))      #Vorläufiger GPIO Pin für den Rotary Encoder
 
+# Redirect URL for spotify OAuth
 redirect = "http://localhost:8888/callback"
 
 
 auth_web = QWebEngineView()
 auth_url = None
 spotify_client = None
+
 window = None
+# Logged in spotify user
 user=None
-playback=None
-track=None
-album_art=None
-art_label=None
-old_track = None
+
 current_track = None
 previous_track = None
+
+# Playback information
+playback=None
+track=None
+
+# Album artwork
+album_art=None
+art_label=None
+# Check for album art refresh
+old_track = None
+
+# Play state of song
 is_playing = False
+
+#Playbar
+progressBar = None
+song_duration = 0
+current_progress = 0

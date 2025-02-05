@@ -2,8 +2,8 @@ import colorsys
 import requests
 import threading
 import sys
-from PyQt6.QtCore import Qt, QUrl, QBuffer, QByteArray
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel
+from PyQt6.QtCore import Qt, QUrl, QBuffer, QByteArray, QTimer
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QProgressBar
 from PyQt6.QtWebEngineWidgets import QWebEngineView 
 from PyQt6.QtGui import QPixmap, QColor, QPainter, QBitmap
 from time import sleep
@@ -30,19 +30,11 @@ class MainWindow(QMainWindow):
         self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
         self.setStyleSheet("background-color: black")
         
-        # Create Album Artwork
+    # Create Album Artwork
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
                 
         config.art_label = QLabel(central_widget)
-        config.art_label.setStyleSheet("""
-            QLabel {
-                border-radius: 145px;  /* Die Hälfte der Breite/Höhe für ein rundes Bild */
-                background-color: transparent;
-                padding: 0px;
-                margin: 0px;
-            }
-        """)
         
         config.art_label.setFixedSize(290, 290)
         config.art_label.move(30, 90)
@@ -56,8 +48,12 @@ class MainWindow(QMainWindow):
         painter.drawRoundedRect(0, 0, 290, 290, 10, 10)  # Die Hälfte der Breite/Höhe für ein rundes Bild
         painter.end()
         config.art_label.setMask(mask)
-        
 
+    # Create playbar
+        config.progressBar = QProgressBar(self)
+        config.progressBar.setFixedWidth(740)
+        config.progressBar.move(30, 400)
+        config.progressBar.show()
 
 def start_app():
     try:
@@ -125,7 +121,12 @@ def get_play_info():
             config.track = config.playback['item']
             print(f"Now Playing: {config.track['name']} by {config.track['artists'][0]['name']}")
             print(f"Progress: {config.playback['progress_ms']}/{config.track['duration_ms']}ms")
+
+            # Set playbar variables
+            config.current_progress = config.playback['progress_ms']
+            config.song_duration = config.track['duration_ms']
             
+            update_playbar()
 
             if config.old_track == None or config.track['name'] != config.old_track['name']:
                 config.old_track = config.track
@@ -160,7 +161,7 @@ def get_album_art(track):
 # Update album art if available
 def update_album_art():
     if config.album_art:
-        config.art_label.setPixmap(config.album_art.scaled(300, 300, Qt.AspectRatioMode.KeepAspectRatio))
+        config.art_label.setPixmap(config.album_art.scaled(290, 290, Qt.AspectRatioMode.KeepAspectRatio))
         
 
 
@@ -242,3 +243,9 @@ def get_color():
             # Fallback to black background
             if config.window:
                 config.window.setStyleSheet("background-color: black")
+
+def update_playbar():
+    config.progressBar.setMinimum(0)
+    config.progressBar.setMaximum(config.song_duration)
+    config.progressBar.setValue(config.current_progress)
+    config.progressBar.update()
