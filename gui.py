@@ -5,23 +5,23 @@ import sys
 from PyQt6.QtCore import Qt, QUrl, QBuffer, QByteArray
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel
 from PyQt6.QtWebEngineWidgets import QWebEngineView 
-from PyQt6.QtGui import QPixmap, QColor
+from PyQt6.QtGui import QPixmap, QColor, QPainter, QBitmap
 from time import sleep
 from PIL import Image
 import io
 
-# Set attribute before ANY QApplication creation
+# Set attribute 
 QApplication.setAttribute(Qt.ApplicationAttribute.AA_ShareOpenGLContexts)
 # Defining qt app
 qt_app = QApplication(sys.argv)
 
-# Only import config and auth AFTER QApplication is created
+# Only import config and auth AFTER QApplication is created!!!
 import config
 import auth
 
 # Define main window
 class MainWindow(QMainWindow):
-    # Setup the main window
+    # Inizialisierung des Fensters
     def __init__(self):
         super().__init__()
         self.setWindowTitle("DN40 Thing")
@@ -30,17 +30,32 @@ class MainWindow(QMainWindow):
         self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
         self.setStyleSheet("background-color: black")
         
-        # Create central widget
+        # Create Album Artwork
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
+                
+        config.art_label = QLabel(central_widget)
+        config.art_label.setStyleSheet("""
+            QLabel {
+                border-radius: 145px;  /* Die Hälfte der Breite/Höhe für ein rundes Bild */
+                background-color: transparent;
+                padding: 0px;
+                margin: 0px;
+            }
+        """)
         
-        # Create layout
-        layout = QVBoxLayout(central_widget)
+        config.art_label.setFixedSize(290, 290)
+        config.art_label.move(30, 90)
         
-        # Create album art label
-        config.art_label = QLabel()
-        config.art_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(config.art_label)
+        # Create Mask for border radius
+        mask = QBitmap(290, 290)
+        mask.fill(Qt.GlobalColor.white)
+        painter = QPainter(mask)
+        painter.setBrush(Qt.GlobalColor.black)
+        painter.setPen(Qt.GlobalColor.black)
+        painter.drawRoundedRect(0, 0, 290, 290, 10, 10)  # Die Hälfte der Breite/Höhe für ein rundes Bild
+        painter.end()
+        config.art_label.setMask(mask)
         
 
 
@@ -146,6 +161,7 @@ def get_album_art(track):
 def update_album_art():
     if config.album_art:
         config.art_label.setPixmap(config.album_art.scaled(300, 300, Qt.AspectRatioMode.KeepAspectRatio))
+        
 
 
 def access_play_info():
