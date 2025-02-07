@@ -45,3 +45,7 @@ is_playing = False
 progressBar = None
 song_duration = 0
 current_progress = 0
+
+# Timer for updating playbar
+timer = None
+api_timer = None

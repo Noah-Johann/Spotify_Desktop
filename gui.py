@@ -1,4 +1,5 @@
 import colorsys
+from operator import ge
 import requests
 import threading
 import sys
@@ -54,6 +55,19 @@ class MainWindow(QMainWindow):
         config.progressBar.setFixedWidth(740)
         config.progressBar.move(30, 400)
         config.progressBar.show()
+
+        config.progressBar.setMinimum(0)
+        config.progressBar.setMaximum(100000)
+
+        # Timer for updating playbar
+        config.timer = QTimer(self)
+        config.timer.timeout.connect(update_playbar)
+        config.timer.start(500)
+
+        # Timer for update with api
+        #config.api_timer = QTimer(self)
+        #config.api_timer.timeout.connect(access_play_info)
+        #config.api_timer.start(3000)
 
 def start_app():
     try:
@@ -125,14 +139,21 @@ def get_play_info():
             # Set playbar variables
             config.current_progress = config.playback['progress_ms']
             config.song_duration = config.track['duration_ms']
+
+            config.progressBar.setValue(config.current_progress)
             
-            update_playbar()
 
             if config.old_track == None or config.track['name'] != config.old_track['name']:
                 config.old_track = config.track
                 config.album_art = get_album_art(config.track)
                 update_album_art()
                 get_color()
+
+                config.progressBar.setMinimum(0)
+                config.progressBar.setMaximum(config.song_duration)
+
+            #config.progressBar.setValue(config.current_progress)
+
         else:
             print("Nothing playing or advertisement playing")
 
@@ -179,6 +200,7 @@ def access_play_info():
 
 def get_color():
     if config.album_art:
+        print("Getting color")
         try:
             # Convert QPixmap to bytes using QBuffer
             byte_array = QByteArray()
@@ -245,7 +267,18 @@ def get_color():
                 config.window.setStyleSheet("background-color: black")
 
 def update_playbar():
-    config.progressBar.setMinimum(0)
-    config.progressBar.setMaximum(config.song_duration)
+    print("Updating playbar")
+    config.current_progress = config.current_progress + 500
     config.progressBar.setValue(config.current_progress)
     config.progressBar.update()
+    #if config.current_progress >= config.song_duration:
+       # print("Song finished")
+        #config.current_progress = 0
+        #config.progressBar.setValue(config.current_progress)
+        #config.timer.stop()
+        #config.api_timer.stop()
+
+        #while config.current_progress>=config.song_duration:
+            #get_play_info()
+            #sleep(2)
+
