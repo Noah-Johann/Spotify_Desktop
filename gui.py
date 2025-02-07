@@ -62,12 +62,8 @@ class MainWindow(QMainWindow):
         # Timer for updating playbar
         config.timer = QTimer(self)
         config.timer.timeout.connect(update_playbar)
-        config.timer.start(500)
+        config.timer.start(40)
 
-        # Timer for update with api
-        #config.api_timer = QTimer(self)
-        #config.api_timer.timeout.connect(access_play_info)
-        #config.api_timer.start(3000)
 
 def start_app():
     try:
@@ -139,6 +135,9 @@ def get_play_info():
             # Set playbar variables
             config.current_progress = config.playback['progress_ms']
             config.song_duration = config.track['duration_ms']
+
+            config.is_playing = config.playback['is_playing']
+            print(config.is_playing)
 
             config.progressBar.setValue(config.current_progress)
             
@@ -267,18 +266,9 @@ def get_color():
                 config.window.setStyleSheet("background-color: black")
 
 def update_playbar():
-    print("Updating playbar")
-    config.current_progress = config.current_progress + 500
-    config.progressBar.setValue(config.current_progress)
-    config.progressBar.update()
-    #if config.current_progress >= config.song_duration:
-       # print("Song finished")
-        #config.current_progress = 0
-        #config.progressBar.setValue(config.current_progress)
-        #config.timer.stop()
-        #config.api_timer.stop()
-
-        #while config.current_progress>=config.song_duration:
-            #get_play_info()
-            #sleep(2)
+    if config.is_playing == True:
+        config.current_progress = config.current_progress + 40
+        config.progressBar.setValue(config.current_progress)
+        config.progressBar.update()
+   
 
