@@ -1,4 +1,3 @@
-import colorsys
 from operator import ge
 import requests
 import threading
@@ -70,13 +69,32 @@ class MainWindow(QMainWindow):
         config.play.setFixedSize(60, 60)
         config.play.move(350, 295)
         config.play.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        config.play.setStyleSheet("background-color: transparent")  # Explizit transparent setzen
+        config.play.setStyleSheet("background-color: transparent") 
         
         config.noplay = QSvgWidget("assets/Pause.svg", self)
         config.noplay.setFixedSize(60, 60)
         config.noplay.move(350, 295)
         config.noplay.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        config.noplay.setStyleSheet("background-color: transparent")  # Explizit transparent setzen
+        config.noplay.setStyleSheet("background-color: transparent")  
+
+    # Create song info texts
+        config.titel = QLabel(self)
+        config.titel.setFixedSize(400, 60)
+        config.titel.move(350, 160)
+        config.titel.setStyleSheet("color: white; font-size: 45px; font-weight: bold; background-color: transparent")
+        config.titel.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+
+        config.artist = QLabel(self)
+        config.artist.setFixedSize(400, 30)
+        config.artist.move(350, 230)
+        config.artist.setStyleSheet("color: white; font-size: 30px; background-color: transparent")
+        config.artist.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+
+        config.album = QLabel(self)
+        config.album.setFixedSize(400, 30)
+        config.album.move(350, 125)        
+        config.album.setStyleSheet("color: rgba(255, 255, 255, 205); font-size: 20px; background-color: transparent")
+        config.album.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
 def start_app():
     try:
@@ -153,6 +171,10 @@ def get_play_info():
             print(config.is_playing)
 
             config.progressBar.setValue(config.current_progress)
+
+            config.titel.setText(config.track['name'])
+            config.artist.setText(config.track['artists'][0]['name'])
+            config.album.setText(config.track['album']['name'])
 
             if config.is_playing == False:
                 config.play.show()
