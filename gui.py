@@ -54,6 +54,16 @@ class MainWindow(QMainWindow):
         config.progressBar = QProgressBar(self)
         config.progressBar.setFixedWidth(740)
         config.progressBar.move(30, 400)
+        palette = config.progressBar.palette()
+        # Setze alle relevanten Farbrollen auf Weiß
+        palette.setColor(QPalette.ColorRole.Highlight, QColor('white'))
+        palette.setColor(QPalette.ColorRole.HighlightedText, QColor('white'))
+        palette.setColor(QPalette.ColorRole.ButtonText, QColor('white'))
+        palette.setColor(QPalette.ColorRole.Window, QColor('white'))
+        palette.setColor(QPalette.ColorRole.WindowText, QColor('white'))
+        palette.setColor(QPalette.ColorRole.Base, QColor('gray'))
+        palette.setColor(QPalette.ColorRole.Text, QColor('white'))
+        config.progressBar.setPalette(palette)
         config.progressBar.show()
 
         config.progressBar.setMinimum(0)
