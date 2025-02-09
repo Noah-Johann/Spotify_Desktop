@@ -1,3 +1,4 @@
+from click import pause
 from gpiozero import RotaryEncoder, Button
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtWebEngineWidgets import QWebEngineView
@@ -45,6 +46,15 @@ is_playing = False
 progressBar = None
 song_duration = 0
 current_progress = 0
+
+# Playstate
+play = None
+noplay = None
+
+# Text
+titel = None
+artist = None
+album = None
 
 # Timer for updating playbar
 timer = None

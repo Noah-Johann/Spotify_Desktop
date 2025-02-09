@@ -5,8 +5,9 @@ import threading
 import sys
 from PyQt6.QtCore import Qt, QUrl, QBuffer, QByteArray, QTimer
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QProgressBar
+from PyQt6.QtSvgWidgets import QSvgWidget
 from PyQt6.QtWebEngineWidgets import QWebEngineView 
-from PyQt6.QtGui import QPixmap, QColor, QPainter, QBitmap
+from PyQt6.QtGui import QPixmap, QColor, QPainter, QBitmap, QPalette
 from time import sleep
 from PIL import Image
 import io
@@ -64,6 +65,18 @@ class MainWindow(QMainWindow):
         config.timer.timeout.connect(update_playbar)
         config.timer.start(40)
 
+    # Create playstatus SVG
+        config.play = QSvgWidget("assets/Play.svg", self)
+        config.play.setFixedSize(60, 60)
+        config.play.move(350, 295)
+        config.play.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        config.play.setStyleSheet("background-color: transparent")  # Explizit transparent setzen
+        
+        config.noplay = QSvgWidget("assets/Pause.svg", self)
+        config.noplay.setFixedSize(60, 60)
+        config.noplay.move(350, 295)
+        config.noplay.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        config.noplay.setStyleSheet("background-color: transparent")  # Explizit transparent setzen
 
 def start_app():
     try:
@@ -140,8 +153,14 @@ def get_play_info():
             print(config.is_playing)
 
             config.progressBar.setValue(config.current_progress)
-            
 
+            if config.is_playing == False:
+                config.play.show()
+                config.noplay.hide()
+            else:
+                config.play.hide()
+                config.noplay.show()
+            
             if config.old_track == None or config.track['name'] != config.old_track['name']:
                 config.old_track = config.track
                 config.album_art = get_album_art(config.track)
