@@ -53,17 +53,19 @@ class MainWindow(QMainWindow):
     # Create playbar
         config.progressBar = QProgressBar(self)
         config.progressBar.setFixedWidth(740)
+        config.progressBar.setFixedHeight(6) 
         config.progressBar.move(30, 400)
-        palette = config.progressBar.palette()
-        # Setze alle relevanten Farbrollen auf Weiß
-        palette.setColor(QPalette.ColorRole.Highlight, QColor('white'))
-        palette.setColor(QPalette.ColorRole.HighlightedText, QColor('white'))
-        palette.setColor(QPalette.ColorRole.ButtonText, QColor('white'))
-        palette.setColor(QPalette.ColorRole.Window, QColor('white'))
-        palette.setColor(QPalette.ColorRole.WindowText, QColor('white'))
-        palette.setColor(QPalette.ColorRole.Base, QColor('gray'))
-        palette.setColor(QPalette.ColorRole.Text, QColor('white'))
-        config.progressBar.setPalette(palette)
+        config.progressBar.setTextVisible(False)
+        config.progressBar.setStyleSheet("""
+            QProgressBar {
+                background-color: rgba(255, 255, 255, 30);
+                border-radius: 3px;
+            }
+            QProgressBar::chunk {
+                background: rgb(255, 255, 255);
+                border-radius: 3px;
+            }
+        """)
         config.progressBar.show()
 
         config.progressBar.setMinimum(0)
@@ -72,7 +74,7 @@ class MainWindow(QMainWindow):
         # Timer for updating playbar
         config.timer = QTimer(self)
         config.timer.timeout.connect(update_playbar)
-        config.timer.start(40)
+        config.timer.start(1)  # Aktualisierung alle 10ms
 
     # Create playstatus SVG
         config.play = QSvgWidget("assets/Play.svg", self)
@@ -206,6 +208,15 @@ def get_play_info():
 
         else:
             print("Nothing playing or advertisement playing")
+            config.play.hide()
+            config.noplay.show()
+            config.progressBar.setValue(0)
+            config.titel.setText("Nothing playing")
+            config.artist.setText("-")
+            config.album.setText("-")
+            config.album_art = None
+            config.current_progress = 0
+            config.song_duration = 0
 
     #except Exception as e:
             #print(f"Error getting info: {e}")
@@ -318,8 +329,11 @@ def get_color():
 
 def update_playbar():
     if config.is_playing == True:
-        config.current_progress = config.current_progress + 40
-        config.progressBar.setValue(config.current_progress)
-        config.progressBar.update()
-   
+        # Berechne den Fortschritt basierend auf der Wiedergabezeit
+        ms_per_update = 1 # Entspricht dem Timer-Intervall
+        config.current_progress = config.current_progress + ms_per_update
+        if config.current_progress <= config.song_duration:
+            config.progressBar.setValue(config.current_progress)
+            config.progressBar.update()  # Force immediate update
+
 
