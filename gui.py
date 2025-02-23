@@ -74,7 +74,14 @@ class MainWindow(QMainWindow):
         # Timer for updating playbar
         config.timer = QTimer(self)
         config.timer.timeout.connect(update_playbar)
-        config.timer.start(1)  # Aktualisierung alle 10ms
+        config.timer.start(33)  # ~30 FPS für flüssige Animation
+
+    # Create spotify logo
+        config.spotify_logo = QSvgWidget("assets/spotify_logo.svg", self)
+        config.spotify_logo.setFixedSize(165, 45)
+        config.spotify_logo.move(35, 30)
+        config.spotify_logo.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        config.spotify_logo.setStyleSheet("background-color: transparent")
 
     # Create playstatus SVG
         config.play = QSvgWidget("assets/Play.svg", self)
@@ -214,17 +221,19 @@ def get_play_info():
             config.titel.setText("Nothing playing")
             config.artist.setText("-")
             config.album.setText("-")
-            config.album_art = None
             config.current_progress = 0
             config.song_duration = 0
-
+            config.album_art = QPixmap(290, 290)
+            config.album_art.fill(QColor(0x18, 0x71, 0x87))
+            update_album_art()
+            get_color()
     #except Exception as e:
             #print(f"Error getting info: {e}")
 
 
 def get_album_art(track):
     try:
-        # Get album art URL (largest size)
+        # Get album art URL 
         print("Getting album art")
         art_url = track['album']['images'][0]['url']
         
@@ -330,10 +339,9 @@ def get_color():
 def update_playbar():
     if config.is_playing == True:
         # Berechne den Fortschritt basierend auf der Wiedergabezeit
-        ms_per_update = 1 # Entspricht dem Timer-Intervall
-        config.current_progress = config.current_progress + ms_per_update
-        if config.current_progress <= config.song_duration:
-            config.progressBar.setValue(config.current_progress)
-            config.progressBar.update()  # Force immediate update
+        ms_per_update = 33  # Entspricht dem Timer-Intervall
+        config.current_progress = min(config.current_progress + ms_per_update, config.song_duration)
+        config.progressBar.setValue(config.current_progress)
+        config.progressBar.update() 
 
 
