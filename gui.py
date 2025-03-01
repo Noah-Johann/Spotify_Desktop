@@ -2,7 +2,7 @@ from operator import ge
 import requests
 import threading
 import sys
-from PyQt6.QtCore import Qt, QUrl, QBuffer, QByteArray, QTimer
+from PyQt6.QtCore import Qt, QUrl, QBuffer, QByteArray, QTimer, QMetaObject, Q_ARG, pyqtSlot
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QProgressBar
 from PyQt6.QtSvgWidgets import QSvgWidget
 from PyQt6.QtWebEngineWidgets import QWebEngineView 
@@ -115,6 +115,78 @@ class MainWindow(QMainWindow):
         config.album.setStyleSheet("color: rgba(255, 255, 255, 205); font-size: 20px; background-color: transparent")
         config.album.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
+    @pyqtSlot()         # For invoking methods in the main thread
+    def update_album_art(self):
+        if config.album_art:
+            config.art_label.setPixmap(config.album_art.scaled(290, 290, Qt.AspectRatioMode.KeepAspectRatio))
+    
+    @pyqtSlot()
+    def get_color(self):
+        if config.album_art:
+            print("Getting color")
+            try:
+                # Convert QPixmap to bytes using QBuffer
+                byte_array = QByteArray()
+                buffer = QBuffer(byte_array)
+                buffer.open(QBuffer.OpenModeFlag.WriteOnly)
+                config.album_art.save(buffer, "PNG")
+                
+                # Open image with PIL
+                img = Image.open(io.BytesIO(byte_array.data()))
+                
+                # Convert to RGB if necessary
+                if img.mode != 'RGB':
+                    img = img.convert('RGB')
+                
+                # Get the size of the image
+                width, height = img.size
+                
+                # Sample pixels from the edges
+                edge_pixels = []
+                
+                # Sample from all edges
+                for x in range(0, width, 10):  # Top and bottom edges
+                    edge_pixels.extend([
+                        img.getpixel((x, 0)),             # Top edge
+                        img.getpixel((x, height - 1))     # Bottom edge
+                    ])
+                
+                for y in range(0, height, 10):  # Left and right edges
+                    edge_pixels.extend([
+                        img.getpixel((0, y)),             # Left edge
+                        img.getpixel((width - 1, y))      # Right edge
+                    ])
+                
+                # Calculate average color from edges
+                avg_r = sum(pixel[0] for pixel in edge_pixels) // len(edge_pixels)
+                avg_g = sum(pixel[1] for pixel in edge_pixels) // len(edge_pixels)
+                avg_b = sum(pixel[2] for pixel in edge_pixels) // len(edge_pixels)
+                
+                # Create a darker version for better contrast
+                background_color = QColor(
+                    int(avg_r * 0.3),  # Making it quite dark for better contrast
+                    int(avg_g * 0.3),
+                    int(avg_b * 0.3)
+                )
+                
+                # Create gradient CSS
+                gradient_style = (
+                    "background: qlineargradient(x1:0, y1:0, x2:1, y2:1,"
+                    f"stop:0 rgb({avg_r}, {avg_g}, {avg_b}),"
+                    f"stop:1 rgb({background_color.red()}, {background_color.green()}, {background_color.blue()}))"
+                )
+                
+                # Set window background
+                self.setStyleSheet(gradient_style)
+                
+                # Clean up
+                buffer.close()
+                    
+            except Exception as e:
+                print(f"Error getting dominant color: {e}")
+                # Fallback to black background
+                self.setStyleSheet("background-color: black")
+
 def start_app():
     try:
         # Handle authentication
@@ -189,46 +261,73 @@ def get_play_info():
             config.is_playing = config.playback['is_playing']
             print(config.is_playing)
 
-            config.progressBar.setValue(config.current_progress)
-
-            config.titel.setText(config.track['name'])
-            config.artist.setText(config.track['artists'][0]['name'])
-            config.album.setText(config.track['album']['name'])
+            # Update GUI elements in the main thread
+            QMetaObject.invokeMethod(config.progressBar, "setValue", 
+                                   Qt.ConnectionType.QueuedConnection,
+                                   Q_ARG(int, config.current_progress))
+            
+            QMetaObject.invokeMethod(config.titel, "setText", 
+                                   Qt.ConnectionType.QueuedConnection,
+                                   Q_ARG(str, config.track['name']))
+            
+            QMetaObject.invokeMethod(config.artist, "setText", 
+                                   Qt.ConnectionType.QueuedConnection,
+                                   Q_ARG(str, config.track['artists'][0]['name']))
+            
+            QMetaObject.invokeMethod(config.album, "setText", 
+                                   Qt.ConnectionType.QueuedConnection,
+                                   Q_ARG(str, config.track['album']['name']))
 
             if config.is_playing == False:
-                config.play.show()
-                config.noplay.hide()
+                QMetaObject.invokeMethod(config.play, "show", Qt.ConnectionType.QueuedConnection)
+                QMetaObject.invokeMethod(config.noplay, "hide", Qt.ConnectionType.QueuedConnection)
             else:
-                config.play.hide()
-                config.noplay.show()
+                QMetaObject.invokeMethod(config.play, "hide", Qt.ConnectionType.QueuedConnection)
+                QMetaObject.invokeMethod(config.noplay, "show", Qt.ConnectionType.QueuedConnection)
             
             if config.old_track == None or config.track['name'] != config.old_track['name']:
                 config.old_track = config.track
                 config.album_art = get_album_art(config.track)
-                update_album_art()
-                get_color()
+                
+                # Diese Aufrufe müssen auch im Haupt-Thread erfolgen
+                QMetaObject.invokeMethod(config.window, "update_album_art", 
+                                       Qt.ConnectionType.QueuedConnection)
+                QMetaObject.invokeMethod(config.window, "get_color", 
+                                       Qt.ConnectionType.QueuedConnection)
 
-                config.progressBar.setMinimum(0)
-                config.progressBar.setMaximum(config.song_duration)
-
-            #config.progressBar.setValue(config.current_progress)
+                QMetaObject.invokeMethod(config.progressBar, "setMinimum", 
+                                       Qt.ConnectionType.QueuedConnection,
+                                       Q_ARG(int, 0))
+                QMetaObject.invokeMethod(config.progressBar, "setMaximum", 
+                                       Qt.ConnectionType.QueuedConnection,
+                                       Q_ARG(int, config.song_duration))
 
         else:
             print("Nothing playing or advertisement playing")
-            config.play.hide()
-            config.noplay.show()
-            config.progressBar.setValue(0)
-            config.titel.setText("Nothing playing")
-            config.artist.setText("-")
-            config.album.setText("-")
+            QMetaObject.invokeMethod(config.play, "hide", Qt.ConnectionType.QueuedConnection)
+            QMetaObject.invokeMethod(config.noplay, "show", Qt.ConnectionType.QueuedConnection)
+            QMetaObject.invokeMethod(config.progressBar, "setValue", 
+                                   Qt.ConnectionType.QueuedConnection,
+                                   Q_ARG(int, 0))
+            QMetaObject.invokeMethod(config.titel, "setText", 
+                                   Qt.ConnectionType.QueuedConnection,
+                                   Q_ARG(str, "Nothing playing"))
+            QMetaObject.invokeMethod(config.artist, "setText", 
+                                   Qt.ConnectionType.QueuedConnection,
+                                   Q_ARG(str, "-"))
+            QMetaObject.invokeMethod(config.album, "setText", 
+                                   Qt.ConnectionType.QueuedConnection,
+                                   Q_ARG(str, "-"))
+            
             config.current_progress = 0
             config.song_duration = 0
             config.album_art = QPixmap(290, 290)
             config.album_art.fill(QColor(0x18, 0x71, 0x87))
-            update_album_art()
-            get_color()
-    #except Exception as e:
-            #print(f"Error getting info: {e}")
+            
+            QMetaObject.invokeMethod(config.window, "update_album_art", 
+                                   Qt.ConnectionType.QueuedConnection)
+            QMetaObject.invokeMethod(config.window, "get_color", 
+                                   Qt.ConnectionType.QueuedConnection)
 
 
 def get_album_art(track):
@@ -249,13 +348,6 @@ def get_album_art(track):
     return None
 
 
-# Update album art if available
-def update_album_art():
-    if config.album_art:
-        config.art_label.setPixmap(config.album_art.scaled(290, 290, Qt.AspectRatioMode.KeepAspectRatio))
-        
-
-
 def access_play_info():
     access = True       #Endless loop
     while access == True:
@@ -267,74 +359,6 @@ def access_play_info():
         except Exception as e:
             print(f"Unexpected error: {e}")
     
-
-def get_color():
-    if config.album_art:
-        print("Getting color")
-        try:
-            # Convert QPixmap to bytes using QBuffer
-            byte_array = QByteArray()
-            buffer = QBuffer(byte_array)
-            buffer.open(QBuffer.OpenModeFlag.WriteOnly)
-            config.album_art.save(buffer, "PNG")
-            
-            # Open image with PIL
-            img = Image.open(io.BytesIO(byte_array.data()))
-            
-            # Convert to RGB if necessary
-            if img.mode != 'RGB':
-                img = img.convert('RGB')
-            
-            # Get the size of the image
-            width, height = img.size
-            
-            # Sample pixels from the edges
-            edge_pixels = []
-            
-            # Sample from all edges
-            for x in range(0, width, 10):  # Top and bottom edges
-                edge_pixels.extend([
-                    img.getpixel((x, 0)),             # Top edge
-                    img.getpixel((x, height - 1))     # Bottom edge
-                ])
-            
-            for y in range(0, height, 10):  # Left and right edges
-                edge_pixels.extend([
-                    img.getpixel((0, y)),             # Left edge
-                    img.getpixel((width - 1, y))      # Right edge
-                ])
-            
-            # Calculate average color from edges
-            avg_r = sum(pixel[0] for pixel in edge_pixels) // len(edge_pixels)
-            avg_g = sum(pixel[1] for pixel in edge_pixels) // len(edge_pixels)
-            avg_b = sum(pixel[2] for pixel in edge_pixels) // len(edge_pixels)
-            
-            # Create a darker version for better contrast
-            background_color = QColor(
-                int(avg_r * 0.3),  # Making it quite dark for better contrast
-                int(avg_g * 0.3),
-                int(avg_b * 0.3)
-            )
-            
-            # Create gradient CSS
-            gradient_style = (
-                "background: qlineargradient(x1:0, y1:0, x2:1, y2:1,"
-                f"stop:0 rgb({avg_r}, {avg_g}, {avg_b}),"
-                f"stop:1 rgb({background_color.red()}, {background_color.green()}, {background_color.blue()}))"
-            )
-            
-            # Set window background
-            if config.window:
-                config.window.setStyleSheet(gradient_style)
-            
-            # Clean up
-            buffer.close()
-                
-        except Exception as e:
-            print(f"Error getting dominant color: {e}")
-            # Fallback to black background
-            if config.window:
-                config.window.setStyleSheet("background-color: black")
 
 def update_playbar():
     if config.is_playing == True:
