@@ -27,7 +27,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("DN40 Thing")
         self.setGeometry(100, 100, 800, 480)
-        #self.setWindowIcon(Qt.WindowIcon.fromTheme("spotify"))
+        #self.setWindowIcon(QIcon("path/to/icon.png"))
         self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
         self.setStyleSheet("background-color: black")
         
@@ -53,17 +53,17 @@ class MainWindow(QMainWindow):
     # Create playbar
         config.progressBar = QProgressBar(self)
         config.progressBar.setFixedWidth(740)
-        config.progressBar.setFixedHeight(6) 
+        config.progressBar.setFixedHeight(8) 
         config.progressBar.move(30, 400)
         config.progressBar.setTextVisible(False)
         config.progressBar.setStyleSheet("""
             QProgressBar {
                 background-color: rgba(255, 255, 255, 30);
-                border-radius: 3px;
+                border-radius: 4px;
             }
             QProgressBar::chunk {
                 background: rgb(255, 255, 255);
-                border-radius: 3px;
+                border-radius: 4px;
             }
         """)
         config.progressBar.show()
@@ -212,9 +212,10 @@ def start_app():
 
 
         # Create main window 
-        config.window = create_gui()
+        print("Create GUI")
+        config.window = MainWindow()
+        config.window.show()
         
-        # Start background thread for updates
         print("After create gui")
 
         # Start background thread for resiving play info
@@ -228,14 +229,6 @@ def start_app():
     except Exception as e:
         print(f"Fatal error: {e}")
         sys.exit(1)
-
-
-def create_gui():
-    # Creates the play screen
-    print("Creating GUI")
-    config.window = MainWindow()
-    config.window.show()
-    return config.window
 
 
 def get_play_info():
@@ -289,7 +282,6 @@ def get_play_info():
                 config.old_track = config.track
                 config.album_art = get_album_art(config.track)
                 
-                # Diese Aufrufe müssen auch im Haupt-Thread erfolgen
                 QMetaObject.invokeMethod(config.window, "update_album_art", 
                                        Qt.ConnectionType.QueuedConnection)
                 QMetaObject.invokeMethod(config.window, "get_color", 
@@ -304,8 +296,8 @@ def get_play_info():
 
         else:
             print("Nothing playing or advertisement playing")
-            QMetaObject.invokeMethod(config.play, "hide", Qt.ConnectionType.QueuedConnection)
-            QMetaObject.invokeMethod(config.noplay, "show", Qt.ConnectionType.QueuedConnection)
+            QMetaObject.invokeMethod(config.play, "show", Qt.ConnectionType.QueuedConnection)
+            QMetaObject.invokeMethod(config.noplay, "hide", Qt.ConnectionType.QueuedConnection)
             QMetaObject.invokeMethod(config.progressBar, "setValue", 
                                    Qt.ConnectionType.QueuedConnection,
                                    Q_ARG(int, 0))
