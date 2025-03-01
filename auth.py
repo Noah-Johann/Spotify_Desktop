@@ -68,4 +68,33 @@ def check_token():
         return token_info
     else:
         print("No cached token or token expired")
+        refresh_token()
         return None
+    
+def refresh_token():
+    """
+    Attempts to refresh the authentication token if one exists.
+    Returns True if token was successfully refreshed, False otherwise.
+    """
+    try:
+        token_info = auth_manager.cache_handler.get_cached_token()
+        if token_info and auth_manager.is_token_expired(token_info):
+            print("Token expired, attempting to refresh...")
+            # The refresh_access_token method will update the cache automatically
+            new_token = auth_manager.refresh_access_token(token_info['refresh_token'])
+            print("Token refreshed successfully")
+            
+            # Update the Spotify client with the new token
+            config.spotify_client = Spotify(auth_manager=auth_manager)
+            config.display = 1
+            return True
+        elif token_info and not auth_manager.is_token_expired(token_info):
+            print("Token is still valid, no refresh needed")
+            return True
+        else:
+            print("No token available to refresh")
+            return False
+    except Exception as e:
+        print(f"Error refreshing token: {e}")
+        return False
+
