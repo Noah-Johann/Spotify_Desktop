@@ -78,7 +78,7 @@ class MainWindow(QMainWindow):
 
     # Create spotify logo
         config.spotify_logo = QSvgWidget("assets/spotify_logo.svg", self)
-        config.spotify_logo.setFixedSize(165, 45)
+        config.spotify_logo.setFixedSize(132, 36)
         config.spotify_logo.move(35, 30)
         config.spotify_logo.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         config.spotify_logo.setStyleSheet("background-color: transparent")
