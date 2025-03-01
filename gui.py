@@ -2,11 +2,11 @@ from operator import ge
 import requests
 import threading
 import sys
-from PyQt6.QtCore import Qt, QUrl, QBuffer, QByteArray, QTimer, QMetaObject, Q_ARG, pyqtSlot
+from PyQt6.QtCore import Qt, QUrl, QBuffer, QByteArray, QTimer, QMetaObject, Q_ARG, pyqtSlot, QFile
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QProgressBar
 from PyQt6.QtSvgWidgets import QSvgWidget
 from PyQt6.QtWebEngineWidgets import QWebEngineView 
-from PyQt6.QtGui import QPixmap, QColor, QPainter, QBitmap, QPalette
+from PyQt6.QtGui import QPixmap, QColor, QPainter, QBitmap, QPalette, QIcon
 from time import sleep
 from PIL import Image
 import io
@@ -27,7 +27,19 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("DN40 Thing")
         self.setGeometry(100, 100, 800, 480)
-        #self.setWindowIcon(QIcon("path/to/icon.png"))
+        
+        # Absoluten Pfad verwenden oder sicherstellen, dass die Datei existiert
+        icon_path = "assets/appicon.png"
+        if QFile.exists(icon_path):
+            self.setWindowIcon(QIcon(icon_path))
+        else:
+            print(f"Icon file not found: {icon_path}")
+        
+        # Für Linux/X11 zusätzlich das Icon für den Task-Manager setzen
+        self.setProperty("_q_styleSheetWidgetType", "QMainWindow")
+        qt_app.setWindowIcon(QIcon(icon_path))
+        
+        # Danach erst das frameless Flag setzen
         self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
         self.setStyleSheet("background-color: black")
         
