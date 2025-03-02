@@ -2,11 +2,11 @@ from operator import ge
 import requests
 import threading
 import sys
-from PyQt6.QtCore import Qt, QUrl, QBuffer, QByteArray, QTimer, QMetaObject, Q_ARG, pyqtSlot, QFile
+from PyQt6.QtCore import Qt, QUrl, QBuffer, QByteArray, QTimer, QMetaObject, Q_ARG, pyqtSlot, QFile, QSize
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QProgressBar
 from PyQt6.QtSvgWidgets import QSvgWidget
 from PyQt6.QtWebEngineWidgets import QWebEngineView 
-from PyQt6.QtGui import QPixmap, QColor, QPainter, QBitmap, QPalette, QIcon
+from PyQt6.QtGui import QPixmap, QColor, QPainter, QBitmap, QPalette, QIcon, QFontMetrics
 from time import sleep
 from PIL import Image
 import io
@@ -111,16 +111,20 @@ class MainWindow(QMainWindow):
 
     # Create song info texts
         config.titel = QLabel(self)
-        config.titel.setFixedSize(400, 60)
+        config.titel.setFixedWidth(400)
+        config.titel.setMinimumHeight(60)
+        config.titel.setMaximumHeight(120)  # Allow for two lines
         config.titel.move(350, 160)
         config.titel.setStyleSheet("color: white; font-size: 45px; font-weight: bold; background-color: transparent")
         config.titel.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        config.titel.setWordWrap(True)  # Enable word wrapping
 
         config.artist = QLabel(self)
         config.artist.setFixedSize(400, 40)
         config.artist.move(350, 230)
-        config.artist.setStyleSheet("color: white; font-size: 30px; background-color: transparent; padding-bottom: 5px;")
+        config.artist.setStyleSheet("color: white; font-size: 30px; background-color: transparent")
         config.artist.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        config.artist.setAlignment(Qt.AlignmentFlag.AlignVCenter)  # Align text vertically in the center
 
         config.album = QLabel(self)
         config.album.setFixedSize(400, 30)
@@ -201,6 +205,46 @@ class MainWindow(QMainWindow):
                 # Fallback to black background
                 self.setStyleSheet("background-color: black")
 
+    @pyqtSlot(str)
+    def adjust_title_and_layout(self, title_text):
+        # Check if the title text fits in one line and adjust the layout accordingly.
+
+        # Get font metrics to measure text width
+        font_metrics = QFontMetrics(config.titel.font())
+        
+        # Check if text fits in one line (considering some margin)
+        text_width = font_metrics.horizontalAdvance(title_text)
+        label_width = config.titel.width() - 10  # Subtract some margin
+        
+        if text_width > label_width:
+            # Text is too long, use two lines
+            config.titel.setWordWrap(True)
+            config.titel.setFixedHeight(120)  # Increase height for two lines
+            config.titel.setText(title_text)
+            
+            # Adjust positions of labels to fit new title
+            config.titel.move(350, 130)
+            config.album.move(350, 95) # album - albumart = 5px down
+            config.artist.move(350, 255)  # Move artist label down
+            config.play.move(350, 320)    # Move play button down
+            config.noplay.move(350, 320)  # Move pause button down
+        else:
+            # Text fits in one line
+            config.titel.setWordWrap(False)
+            config.titel.setFixedHeight(60)  # Original height
+            config.titel.setText(title_text)
+            
+            # Reset positions of other elements
+            config.titel.move(350, 160)
+            config.album.move(350, 125)   # Original position
+            config.artist.move(350, 230)  # Original position
+            config.play.move(350, 295)    # Original position
+            config.noplay.move(350, 295)  # Original position
+        
+        # Force update
+        config.titel.adjustSize()
+        config.titel.setFixedWidth(400)  # Maintain fixed width
+
 def start_app():
     try:
         # Handle authentication
@@ -273,7 +317,8 @@ def get_play_info():
                                    Qt.ConnectionType.QueuedConnection,
                                    Q_ARG(int, config.current_progress))
             
-            QMetaObject.invokeMethod(config.titel, "setText", 
+            # Use the new method to set title and adjust layout
+            QMetaObject.invokeMethod(config.window, "adjust_title_and_layout", 
                                    Qt.ConnectionType.QueuedConnection,
                                    Q_ARG(str, config.track['name']))
             
@@ -315,7 +360,9 @@ def get_play_info():
             QMetaObject.invokeMethod(config.progressBar, "setValue", 
                                    Qt.ConnectionType.QueuedConnection,
                                    Q_ARG(int, 0))
-            QMetaObject.invokeMethod(config.titel, "setText", 
+            
+            # Use the new method for the "Nothing playing" text too
+            QMetaObject.invokeMethod(config.window, "adjust_title_and_layout", 
                                    Qt.ConnectionType.QueuedConnection,
                                    Q_ARG(str, "Nothing playing"))
             QMetaObject.invokeMethod(config.artist, "setText", 
