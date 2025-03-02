@@ -117,9 +117,9 @@ class MainWindow(QMainWindow):
         config.titel.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
         config.artist = QLabel(self)
-        config.artist.setFixedSize(400, 30)
+        config.artist.setFixedSize(400, 40)
         config.artist.move(350, 230)
-        config.artist.setStyleSheet("color: white; font-size: 30px; background-color: transparent")
+        config.artist.setStyleSheet("color: white; font-size: 30px; background-color: transparent; padding-bottom: 5px;")
         config.artist.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
         config.album = QLabel(self)
