@@ -28,18 +28,18 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("DN40 Thing")
         self.setGeometry(100, 100, 800, 480)
         
-        # Absoluten Pfad verwenden oder sicherstellen, dass die Datei existiert
+        # Set app icon
         icon_path = "assets/appicon.png"
         if QFile.exists(icon_path):
             self.setWindowIcon(QIcon(icon_path))
         else:
             print(f"Icon file not found: {icon_path}")
         
-        # Für Linux/X11 zusätzlich das Icon für den Task-Manager setzen
+        # Needed for Linux/X11 to set icon for task manager
         self.setProperty("_q_styleSheetWidgetType", "QMainWindow")
         qt_app.setWindowIcon(QIcon(icon_path))
         
-        # Danach erst das frameless Flag setzen
+        # Set frameless flag after setting icon
         self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
         self.setStyleSheet("background-color: black")
         
@@ -62,7 +62,7 @@ class MainWindow(QMainWindow):
         painter.end()
         config.art_label.setMask(mask)
 
-    # Create playbar
+    # Create progress bar
         config.progressBar = QProgressBar(self)
         config.progressBar.setFixedWidth(740)
         config.progressBar.setFixedHeight(8) 
@@ -80,13 +80,14 @@ class MainWindow(QMainWindow):
         """)
         config.progressBar.show()
 
+        # Initialize progress bar values
         config.progressBar.setMinimum(0)
         config.progressBar.setMaximum(100000)
 
         # Timer for updating playbar
         config.timer = QTimer(self)
         config.timer.timeout.connect(update_playbar)
-        config.timer.start(33)  # ~30 FPS für flüssige Animation
+        config.timer.start(33)  
 
     # Create spotify logo
         config.spotify_logo = QSvgWidget("assets/spotify_logo.svg", self)
@@ -126,6 +127,7 @@ class MainWindow(QMainWindow):
         config.album.move(350, 125)        
         config.album.setStyleSheet("color: rgba(255, 255, 255, 205); font-size: 20px; background-color: transparent")
         config.album.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+
 
     @pyqtSlot()         # For invoking methods in the main thread
     def update_album_art(self):
@@ -366,8 +368,9 @@ def access_play_info():
 
 def update_playbar():
     if config.is_playing == True:
-        # Berechne den Fortschritt basierend auf der Wiedergabezeit
-        ms_per_update = 33  # Entspricht dem Timer-Intervall
+        ms_per_update = 33  # = timer interval
+        
+        # Only current progress if it's less than song duration
         config.current_progress = min(config.current_progress + ms_per_update, config.song_duration)
         config.progressBar.setValue(config.current_progress)
         config.progressBar.update() 
