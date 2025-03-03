@@ -6,13 +6,14 @@ from PyQt6.QtCore import Qt, QUrl, QBuffer, QByteArray, QTimer, QMetaObject, Q_A
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QProgressBar
 from PyQt6.QtSvgWidgets import QSvgWidget
 from PyQt6.QtWebEngineWidgets import QWebEngineView 
-from PyQt6.QtGui import QPixmap, QColor, QPainter, QBitmap, QPalette, QIcon, QFontMetrics
+from PyQt6.QtGui import QPixmap, QColor, QPainter, QBitmap, QPalette, QIcon, QFontMetrics, QTransform 
 from time import sleep
 from PIL import Image
 import io
 
 # Set attribute 
 QApplication.setAttribute(Qt.ApplicationAttribute.AA_ShareOpenGLContexts)
+QApplication.setApplicationName("DN40 Thing")
 # Defining qt app
 qt_app = QApplication(sys.argv)
 
@@ -374,6 +375,8 @@ def get_play_info():
             
             config.current_progress = 0
             config.song_duration = 0
+
+            # Set solid color for album art and get color for background
             config.album_art = QPixmap(290, 290)
             config.album_art.fill(QColor(0x18, 0x71, 0x87))
             
