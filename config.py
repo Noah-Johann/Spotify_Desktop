@@ -28,6 +28,7 @@ user=None
 
 current_track = None
 previous_track = None
+track_id = None
 
 # Playback information
 playback=None

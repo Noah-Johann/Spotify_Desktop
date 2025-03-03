@@ -313,6 +313,8 @@ def get_play_info():
             config.is_playing = config.playback['is_playing']
             print(config.is_playing)
 
+            config.track_id = config.track['id']
+
             # Update GUI elements in the main thread
             QMetaObject.invokeMethod(config.progressBar, "setValue", 
                                    Qt.ConnectionType.QueuedConnection,
