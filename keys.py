@@ -7,7 +7,6 @@ import config
 import gui
 
 
-print(len(config.characters))
 
     
 def select_char():
