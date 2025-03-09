@@ -35,6 +35,7 @@ playback=None
 track=None
 episode=None
 episode_id=None
+playing_type=None
 
 # Album artwork
 album_art=None
@@ -58,6 +59,7 @@ noplay = None
 titel = None
 artist = None
 album = None
+titelfont = 45
 
 # Timer for updating playbar
 timer = None

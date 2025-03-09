@@ -6,7 +6,7 @@ from PyQt6.QtCore import Qt, QUrl, QBuffer, QByteArray, QTimer, QMetaObject, Q_A
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QProgressBar
 from PyQt6.QtSvgWidgets import QSvgWidget
 from PyQt6.QtWebEngineWidgets import QWebEngineView 
-from PyQt6.QtGui import QPixmap, QColor, QPainter, QBitmap, QPalette, QIcon, QFontMetrics, QTransform 
+from PyQt6.QtGui import QPixmap, QColor, QPainter, QBitmap, QPalette, QIcon, QFontMetrics, QTransform, QFont 
 from time import sleep
 from PIL import Image
 import io
@@ -116,7 +116,8 @@ class MainWindow(QMainWindow):
         config.titel.setMinimumHeight(60)
         config.titel.setMaximumHeight(120)  # Allow for two lines
         config.titel.move(350, 160)
-        config.titel.setStyleSheet("color: white; font-size: 45px; font-weight: bold; background-color: transparent")
+        config.titel.setStyleSheet("color: white; font-weight: bold; background-color: transparent")
+        config.titel.setFont(QFont("Arial", config.titelfont))
         config.titel.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         config.titel.setWordWrap(True)  # Enable word wrapping
 
@@ -213,7 +214,7 @@ class MainWindow(QMainWindow):
         # Get font metrics to measure text width
         font_metrics = QFontMetrics(config.titel.font())
         
-        # Check if text fits in one line (considering some margin)
+        # Check if text fits in one lines
         text_width = font_metrics.horizontalAdvance(title_text)
         label_width = config.titel.width() 
         
@@ -229,6 +230,20 @@ class MainWindow(QMainWindow):
             config.artist.move(350, 255)
             config.play.move(350, 320)
             config.noplay.move(350, 320)
+
+        if text_width > label_width*2 and config.playing_type == "episode":
+
+            # Three lines
+            config.titel.setWordWrap(True)
+            config.titel.setFixedHeight(180)  # Increase height for three lines
+            config.titel.setText(title_text)
+
+            config.titel.move(350, 130)
+            config.album.move(350, 95) 
+            config.artist.hide()
+            config.play.move(350, 320)
+            config.noplay.move(350, 320)
+
         else:
             # One line
             config.titel.setWordWrap(False)
@@ -324,12 +339,12 @@ def get_play_info():
                 return
 
             # Get playing type
-            playing_type = config.playback.get('currently_playing_type')
-            print(f"Currently playing type: {playing_type}")
+            config.playing_type = config.playback.get('currently_playing_type')
+            print(f"Currently playing type: {config.playing_type}")
             
 
             # Music track
-            if playing_type == 'track':
+            if config.playing_type == 'track':
                 config.track = config.playback['item']
                 print(f"Now Playing: {config.track['name']} by {config.track['artists'][0]['name']}")
 
@@ -349,7 +364,7 @@ def get_play_info():
                                        Q_ARG(str, config.track['album']['name']))
 
             # Podcast
-            elif playing_type == 'episode' or playing_type == 'show':
+            elif config.playing_type == 'episode' or config.playing_type == 'show':
                 got_episode_info = False
                 
                 try:
@@ -405,7 +420,7 @@ def get_play_info():
                     config.song_duration = 100000
 
             # Advertisement
-            elif playing_type== 'ad':
+            elif config.playing_type== 'ad':
                 print("advertisement")
                 QMetaObject.invokeMethod(config.play, "show", Qt.ConnectionType.QueuedConnection)
                 QMetaObject.invokeMethod(config.noplay, "hide", Qt.ConnectionType.QueuedConnection)
