@@ -336,6 +336,15 @@ def get_play_info():
                 QMetaObject.invokeMethod(config.album, "setText", 
                                        Qt.ConnectionType.QueuedConnection,
                                        Q_ARG(str, "-"))
+                config.current_progress = 0
+                config.song_duration = 0
+                config.album_art = QPixmap(290, 290)
+                config.album_art.fill(QColor(0x18, 0x71, 0x87))
+                
+                QMetaObject.invokeMethod(config.window, "update_album_art", 
+                                           Qt.ConnectionType.QueuedConnection)
+                QMetaObject.invokeMethod(config.window, "get_color", 
+                                           Qt.ConnectionType.QueuedConnection)
                 return
 
             # Get playing type
@@ -446,6 +455,7 @@ def get_play_info():
                                        Qt.ConnectionType.QueuedConnection)
                 QMetaObject.invokeMethod(config.window, "get_color", 
                                        Qt.ConnectionType.QueuedConnection)
+
                 return
                 
             # Get playing state
