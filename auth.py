@@ -9,7 +9,7 @@ auth_manager = SpotifyOAuth(
         client_id=client.clientID,
         client_secret=client.clientSecret,
         redirect_uri=config.redirect,
-        scope="user-read-playback-state user-modify-playback-state",
+        scope="user-read-playback-state user-modify-playback-state user-read-playback-position user-library-read user-read-currently-playing user-read-recently-played",
 )
 
 def auth():
