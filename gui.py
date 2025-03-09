@@ -112,7 +112,7 @@ class MainWindow(QMainWindow):
 
     # Create song info texts
         config.titel = QLabel(self)
-        config.titel.setFixedWidth(400)
+        config.titel.setFixedWidth(350)
         config.titel.setMinimumHeight(60)
         config.titel.setMaximumHeight(120)  # Allow for two lines
         config.titel.move(350, 160)
@@ -215,10 +215,10 @@ class MainWindow(QMainWindow):
         
         # Check if text fits in one line (considering some margin)
         text_width = font_metrics.horizontalAdvance(title_text)
-        label_width = config.titel.width() - 10  # Subtract some margin
+        label_width = config.titel.width() 
         
         if text_width > label_width:
-            # Text is too long, use two lines
+            # Two lines
             config.titel.setWordWrap(True)
             config.titel.setFixedHeight(120)  # Increase height for two lines
             config.titel.setText(title_text)
@@ -226,11 +226,11 @@ class MainWindow(QMainWindow):
             # Adjust positions of labels to fit new title
             config.titel.move(350, 130)
             config.album.move(350, 95) # album - albumart = 5px down
-            config.artist.move(350, 255)  # Move artist label down
-            config.play.move(350, 320)    # Move play button down
-            config.noplay.move(350, 320)  # Move pause button down
+            config.artist.move(350, 255)
+            config.play.move(350, 320)
+            config.noplay.move(350, 320)
         else:
-            # Text fits in one line
+            # One line
             config.titel.setWordWrap(False)
             config.titel.setFixedHeight(60)  # Original height
             config.titel.setText(title_text)
@@ -244,15 +244,15 @@ class MainWindow(QMainWindow):
         
         # Force update
         config.titel.adjustSize()
-        config.titel.setFixedWidth(400)  # Maintain fixed width
+        config.titel.setFixedWidth(350)
 
 def start_app():
     try:
         # Handle authentication
         print("Starting auth.py")
 
-        #Checks for successful authentication
-        config.spotify_client = auth.auth() #opens the def auth() from auth.py
+        # Checks for successful authentication
+        config.spotify_client = auth.auth() # opens the def auth() from auth.py
         print(config.spotify_client)
         
         # Opens login website if authentication failed
@@ -291,63 +291,182 @@ def start_app():
 
 
 def get_play_info():
-    if config.display != 0:     #If display is not set to 0 (Authentication)
+    if config.display != 0:     # If display is not set to 0 (Authentication)
 
-        # Get user info
-        if config.user != config.spotify_client.current_user(): #If user is not the same as the current user
-            config.user = config.spotify_client.current_user()
-            print(f"Logged in as: {config.user['display_name']}")
+        try:
+            # Get user info
+            if config.user != config.spotify_client.current_user(): # If user is not the same as the current user
+                config.user = config.spotify_client.current_user()
+                print(f"Logged in as: {config.user['display_name']}")
+                
+            # Get current playback
+            #config.playback = config.spotify_client.current_playback()  # Recives the current playback from spotify api
+            config.playback = config.spotify_client.current_playback(additional_types=['episode'])  # Add additional_types here
+
+            # Check if playback is active
+            if config.playback is None:
+                print("No active playback")
+                # Show "Nothing playing" in the UI
+                QMetaObject.invokeMethod(config.play, "show", Qt.ConnectionType.QueuedConnection)
+                QMetaObject.invokeMethod(config.noplay, "hide", Qt.ConnectionType.QueuedConnection)
+                QMetaObject.invokeMethod(config.progressBar, "setValue", 
+                                       Qt.ConnectionType.QueuedConnection,
+                                       Q_ARG(int, 0))
+                QMetaObject.invokeMethod(config.window, "adjust_title_and_layout", 
+                                       Qt.ConnectionType.QueuedConnection,
+                                       Q_ARG(str, "Nothing playing"))
+                QMetaObject.invokeMethod(config.artist, "setText", 
+                                       Qt.ConnectionType.QueuedConnection,
+                                       Q_ARG(str, "-"))
+                QMetaObject.invokeMethod(config.album, "setText", 
+                                       Qt.ConnectionType.QueuedConnection,
+                                       Q_ARG(str, "-"))
+                return
+
+            # Get playing type
+            playing_type = config.playback.get('currently_playing_type')
+            print(f"Currently playing type: {playing_type}")
             
-        # Get current playback
-        config.playback = config.spotify_client.current_playback()  # Resives the current playback from spotify api
 
-        if config.playback and config.playback['item']:  # Check if there's a track (not an ad)
-            config.track = config.playback['item']
-            print(f"Now Playing: {config.track['name']} by {config.track['artists'][0]['name']}")
-            print(f"Progress: {config.playback['progress_ms']}/{config.track['duration_ms']}ms")
+            # Music track
+            if playing_type == 'track':
+                config.track = config.playback['item']
+                print(f"Now Playing: {config.track['name']} by {config.track['artists'][0]['name']}")
 
-            # Set playbar variables
-            config.current_progress = config.playback['progress_ms']
-            config.song_duration = config.track['duration_ms']
+                # one/two line title
+                QMetaObject.invokeMethod(config.window, "adjust_title_and_layout", 
+                                       Qt.ConnectionType.QueuedConnection,
+                                       Q_ARG(str, config.track['name']))
+                
+                # set artist label
+                QMetaObject.invokeMethod(config.artist, "setText", 
+                                       Qt.ConnectionType.QueuedConnection,
+                                       Q_ARG(str, config.track['artists'][0]['name']))
+                
+                # set album label
+                QMetaObject.invokeMethod(config.album, "setText", 
+                                       Qt.ConnectionType.QueuedConnection,
+                                       Q_ARG(str, config.track['album']['name']))
 
+            # Podcast
+            elif playing_type == 'episode' or playing_type == 'show':
+                got_episode_info = False
+                
+                try:
+                    # Try to get the currently playing track with additional_types
+                    current_playing = config.spotify_client.currently_playing(additional_types=['episode'])
+                    
+                    if current_playing and current_playing.get('item'):
+                        config.track = current_playing['item']
+                        got_episode_info = True
+                        print("First method")
+                    
+                except Exception as e:
+                    print(f"Error getting episode details: {e}")
+                
+                if got_episode_info:
+                    # one/two line title
+                    QMetaObject.invokeMethod(config.window, "adjust_title_and_layout", 
+                                           Qt.ConnectionType.QueuedConnection,
+                                           Q_ARG(str, config.track['name']))
+                
+                    # hide text
+                    QMetaObject.invokeMethod(config.artist, "setText", 
+                                           Qt.ConnectionType.QueuedConnection,
+                                           Q_ARG(str, "-"))
+                
+                    # set album label
+                    QMetaObject.invokeMethod(config.album, "setText", 
+                                           Qt.ConnectionType.QueuedConnection,
+                                           Q_ARG(str, config.track['show']['name']))
+                    
+                    # Store progress and duration
+                    config.current_progress = config.playback['progress_ms']
+                    if 'duration_ms' in config.track:
+                        config.song_duration = config.track['duration_ms']
+                    else:
+                        config.song_duration = 100000  # Default duration if not available
+                
+                # Default values for podcasts
+                else:
+                    # Set default values when we can't get episode info
+                    QMetaObject.invokeMethod(config.window, "adjust_title_and_layout", 
+                                           Qt.ConnectionType.QueuedConnection,
+                                           Q_ARG(str, "Podcast Episode"))
+                    QMetaObject.invokeMethod(config.artist, "setText", 
+                                           Qt.ConnectionType.QueuedConnection,
+                                           Q_ARG(str, "Podcast"))
+                    QMetaObject.invokeMethod(config.album, "setText", 
+                                           Qt.ConnectionType.QueuedConnection,
+                                           Q_ARG(str, "No more information available"))
+                    
+                    # Set default progress values
+                    config.current_progress = config.playback['progress_ms']
+                    config.song_duration = 100000
+
+            # Advertisement
+            elif playing_type== 'ad':
+                print("advertisement")
+                QMetaObject.invokeMethod(config.play, "show", Qt.ConnectionType.QueuedConnection)
+                QMetaObject.invokeMethod(config.noplay, "hide", Qt.ConnectionType.QueuedConnection)
+                QMetaObject.invokeMethod(config.progressBar, "setValue", 
+                                       Qt.ConnectionType.QueuedConnection,
+                                       Q_ARG(int, 0))
+                QMetaObject.invokeMethod(config.window, "adjust_title_and_layout", 
+                                       Qt.ConnectionType.QueuedConnection,
+                                       Q_ARG(str, "Advertisement"))
+                QMetaObject.invokeMethod(config.artist, "setText", 
+                                       Qt.ConnectionType.QueuedConnection,
+                                       Q_ARG(str, "-"))
+                QMetaObject.invokeMethod(config.album, "setText", 
+                                       Qt.ConnectionType.QueuedConnection,
+                                       Q_ARG(str, "-"))
+                
+                config.current_progress = 0
+                config.song_duration = 0
+                config.album_art = QPixmap(290, 290)
+                config.album_art.fill(QColor(0x18, 0x71, 0x87))
+                
+                QMetaObject.invokeMethod(config.window, "update_album_art", 
+                                       Qt.ConnectionType.QueuedConnection)
+                QMetaObject.invokeMethod(config.window, "get_color", 
+                                       Qt.ConnectionType.QueuedConnection)
+                return
+                
+            # Get playing state
             config.is_playing = config.playback['is_playing']
             print(config.is_playing)
 
             config.track_id = config.track['id']
 
-            # Update GUI elements in the main thread
-            QMetaObject.invokeMethod(config.progressBar, "setValue", 
-                                   Qt.ConnectionType.QueuedConnection,
-                                   Q_ARG(int, config.current_progress))
-            
-            # Use the new method to set title and adjust layout
-            QMetaObject.invokeMethod(config.window, "adjust_title_and_layout", 
-                                   Qt.ConnectionType.QueuedConnection,
-                                   Q_ARG(str, config.track['name']))
-            
-            QMetaObject.invokeMethod(config.artist, "setText", 
-                                   Qt.ConnectionType.QueuedConnection,
-                                   Q_ARG(str, config.track['artists'][0]['name']))
-            
-            QMetaObject.invokeMethod(config.album, "setText", 
-                                   Qt.ConnectionType.QueuedConnection,
-                                   Q_ARG(str, config.track['album']['name']))
+            # Set playbar variables
+            config.current_progress = config.playback['progress_ms']
+            config.song_duration = config.track['duration_ms']
 
+
+            # setValue of progressBar
+            QMetaObject.invokeMethod(config.progressBar, "setValue", 
+                                       Qt.ConnectionType.QueuedConnection,
+                                       Q_ARG(int, config.current_progress))
+                
+
+            # set play/pause button
             if config.is_playing == False:
                 QMetaObject.invokeMethod(config.play, "show", Qt.ConnectionType.QueuedConnection)
                 QMetaObject.invokeMethod(config.noplay, "hide", Qt.ConnectionType.QueuedConnection)
             else:
                 QMetaObject.invokeMethod(config.play, "hide", Qt.ConnectionType.QueuedConnection)
                 QMetaObject.invokeMethod(config.noplay, "show", Qt.ConnectionType.QueuedConnection)
-            
+                
+
             if config.old_track == None or config.track['name'] != config.old_track['name']:
                 config.old_track = config.track
                 config.album_art = get_album_art(config.track)
-                
+                    
                 QMetaObject.invokeMethod(config.window, "update_album_art", 
-                                       Qt.ConnectionType.QueuedConnection)
+                                           Qt.ConnectionType.QueuedConnection)
                 QMetaObject.invokeMethod(config.window, "get_color", 
-                                       Qt.ConnectionType.QueuedConnection)
+                                           Qt.ConnectionType.QueuedConnection)
 
                 QMetaObject.invokeMethod(config.progressBar, "setMinimum", 
                                        Qt.ConnectionType.QueuedConnection,
@@ -355,44 +474,21 @@ def get_play_info():
                 QMetaObject.invokeMethod(config.progressBar, "setMaximum", 
                                        Qt.ConnectionType.QueuedConnection,
                                        Q_ARG(int, config.song_duration))
-
-        else:
-            print("Nothing playing or advertisement playing")
-            QMetaObject.invokeMethod(config.play, "show", Qt.ConnectionType.QueuedConnection)
-            QMetaObject.invokeMethod(config.noplay, "hide", Qt.ConnectionType.QueuedConnection)
-            QMetaObject.invokeMethod(config.progressBar, "setValue", 
-                                   Qt.ConnectionType.QueuedConnection,
-                                   Q_ARG(int, 0))
-            
-            # Use the new method for the "Nothing playing" text too
-            QMetaObject.invokeMethod(config.window, "adjust_title_and_layout", 
-                                   Qt.ConnectionType.QueuedConnection,
-                                   Q_ARG(str, "Nothing playing"))
-            QMetaObject.invokeMethod(config.artist, "setText", 
-                                   Qt.ConnectionType.QueuedConnection,
-                                   Q_ARG(str, "-"))
-            QMetaObject.invokeMethod(config.album, "setText", 
-                                   Qt.ConnectionType.QueuedConnection,
-                                   Q_ARG(str, "-"))
-            
-            config.current_progress = 0
-            config.song_duration = 0
-
-            # Set solid color for album art and get color for background
-            config.album_art = QPixmap(290, 290)
-            config.album_art.fill(QColor(0x18, 0x71, 0x87))
-            
-            QMetaObject.invokeMethod(config.window, "update_album_art", 
-                                   Qt.ConnectionType.QueuedConnection)
-            QMetaObject.invokeMethod(config.window, "get_color", 
-                                   Qt.ConnectionType.QueuedConnection)
+        except Exception as e:
+            print(f"Error in get_play_info: {e}")
+            # Continue execution even if there's an error
 
 
 def get_album_art(track):
     try:
         # Get album art URL 
         print("Getting album art")
-        art_url = track['album']['images'][0]['url']
+        
+        # Check if this is a podcast episode or a music track
+        if 'show' in track:  # This is a podcast episode
+            art_url = track['images'][0]['url']
+        else:  # This is a music track
+            art_url = track['album']['images'][0]['url']
         
         # Download image
         response = requests.get(art_url)
@@ -403,6 +499,10 @@ def get_album_art(track):
             return pixmap
     except Exception as e:
         print(f"Error getting album art: {e}")
+        # Create a default blue pixmap if we can't get the album art
+        pixmap = QPixmap(290, 290)
+        pixmap.fill(QColor(0x18, 0x71, 0x87))
+        return pixmap
     return None
 
 

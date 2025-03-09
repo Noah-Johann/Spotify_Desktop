@@ -33,6 +33,8 @@ track_id = None
 # Playback information
 playback=None
 track=None
+episode=None
+episode_id=None
 
 # Album artwork
 album_art=None
