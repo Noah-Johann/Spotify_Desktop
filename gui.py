@@ -217,19 +217,6 @@ class MainWindow(QMainWindow):
         # Check if text fits in one lines
         text_width = font_metrics.horizontalAdvance(title_text)
         label_width = config.titel.width() 
-        
-        if text_width > label_width:
-            # Two lines
-            config.titel.setWordWrap(True)
-            config.titel.setFixedHeight(120)  # Increase height for two lines
-            config.titel.setText(title_text)
-            
-            # Adjust positions of labels to fit new title
-            config.titel.move(350, 130)
-            config.album.move(350, 95) # album - albumart = 5px down
-            config.artist.move(350, 255)
-            config.play.move(350, 320)
-            config.noplay.move(350, 320)
 
         if text_width > label_width*2 and config.playing_type == "episode":
 
@@ -244,6 +231,22 @@ class MainWindow(QMainWindow):
             config.play.move(350, 320)
             config.noplay.move(350, 320)
 
+        elif text_width > label_width:
+            # Two lines
+            config.titel.setWordWrap(True)
+            config.titel.setFixedHeight(120)  # Increase height for two lines
+            config.titel.setText(title_text)
+            
+            # Adjust positions of labels to fit new title
+            config.titel.move(350, 130)
+            config.album.move(350, 95) # album - albumart = 5px down
+            config.artist.show()
+            config.artist.move(350, 255)
+            config.play.move(350, 320)
+            config.noplay.move(350, 320)
+
+
+
         else:
             # One line
             config.titel.setWordWrap(False)
@@ -256,6 +259,7 @@ class MainWindow(QMainWindow):
             config.artist.move(350, 230)  # Original position
             config.play.move(350, 295)    # Original position
             config.noplay.move(350, 295)  # Original position
+            config.artist.show()
         
         # Force update
         config.titel.adjustSize()
@@ -340,7 +344,7 @@ def get_play_info():
                 config.song_duration = 0
                 config.album_art = QPixmap(290, 290)
                 config.album_art.fill(QColor(0x18, 0x71, 0x87))
-                
+
                 QMetaObject.invokeMethod(config.window, "update_album_art", 
                                            Qt.ConnectionType.QueuedConnection)
                 QMetaObject.invokeMethod(config.window, "get_color", 
