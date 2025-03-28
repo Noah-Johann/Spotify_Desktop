@@ -117,21 +117,21 @@ class MainWindow(QMainWindow):
         config.titel.setMaximumHeight(120)  # Allow for two lines
         config.titel.move(350, 160)
         config.titel.setStyleSheet("color: white; font-weight: bold; background-color: transparent")
-        config.titel.setFont(QFont("Arial", config.titelfont))
+        config.titel.setFont(QFont("Noto Sans", config.titelfont))
         config.titel.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         config.titel.setWordWrap(True)  # Enable word wrapping
 
         config.artist = QLabel(self)
         config.artist.setFixedSize(400, 40)
         config.artist.move(350, 230)
-        config.artist.setStyleSheet("color: white; font-size: 30px; background-color: transparent")
+        config.artist.setStyleSheet("color: white; font-size: 30px; font-family: 'Noto Sans'; background-color: transparent")
         config.artist.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         config.artist.setAlignment(Qt.AlignmentFlag.AlignVCenter)  # Align text vertically in the center
 
         config.album = QLabel(self)
         config.album.setFixedSize(400, 30)
         config.album.move(350, 125)        
-        config.album.setStyleSheet("color: rgba(255, 255, 255, 205); font-size: 20px; background-color: transparent")
+        config.album.setStyleSheet("color: rgba(255, 255, 255, 205); font-size: 20px; font-family: 'Noto Sans'; background-color: transparent")
         config.album.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
 

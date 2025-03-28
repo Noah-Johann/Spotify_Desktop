@@ -1,19 +1,8 @@
 from gpiozero import RotaryEncoder, Button
 from signal import pause
-import pyautogui
-import time
 
 import config
 import gui
-
-
-
-    
-def select_char():
-    #send character to spotify
-    send_char_to_spotify(config.characters[config.selected_character])
-    print("placeholder")  
-    print(config.characters[config.selected_character])
 
 
 def pause_playback():
@@ -24,70 +13,30 @@ def pause_playback():
         else:
             config.spotify_client.start_playback()
 
-
-def change_character_plus():
-    #change character to next one
-    selected_character += 1
-    if selected_character > len(config.characters):
-        selected_character = len(config.characters)  
-    if selected_character < 0:
-        selected_character = 0
-    
-    print(config.characters[config.selected_character])
-
-
 def change_volume_plus():
     if config.spotify_client:
         config.spotify_client.volume() == config.spotify_client.volume() + 5
 
-
-def change_character_minus():
-    #change character to previous one
-    selected_character -= 1
-    if selected_character >= len(config.characters):
-        selected_character = len(config.characters)  
-    if selected_character < 0:
-        selected_character = 0
-
-    print(config.characters[config.selected_character])
-
-
 def change_volume_minus():
     if config.spotify_client:
         config.spotify_client.volume() == config.spotify_client.volume() - 5 
-        
-
-def send_char_to_spotify(selected_char):
-    # Warte kurz, damit die Spotify-Seite richtig geladen ist
-    time.sleep(2)
-    pyautogui.write(config.characters[config.selected_character])
 
 def check_Button():
-
     if config.rotary.when_rotated_clockwise:
-        if config.display == 0:
-            change_character_plus()
-
-        elif config.display == 1:
-            print("Louder")
-            gui.get_play_info()
+        change_volume_plus()
+        print("Louder")
+        gui.get_play_info()
 
 
     if config.rotary.when_rotated_counterclockwise:
-        if config.display == 0:
-            change_character_minus()
-
-        elif config.display == 1:
-            print("Quieter")
-            gui.get_play_info()
+        change_volume_minus()
+        print("Quieter")
+        gui.get_play_info()
 
 
     if config.button.when_pressed:
-        if config.display == 0:
-            select_char()
-    
-        elif config.display == 1:
-            pause_playback()
-            gui.get_play_info()
+        pause_playback()
+        pause_playback()
+        gui.get_play_info()
             
 

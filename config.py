@@ -12,7 +12,7 @@ selected_character = 0
 
 #GPIO Pins
 #button = Button(27)                                                 #Vorläufiger GPIO Pin für den Button
-#rotary = RotaryEncoder(a=17, b= 18, max_steps=len(characters))      #Vorläufiger GPIO Pin für den Rotary Encoder
+#rotary = RotaryEncoder(a=17, b= 18, max_steps=20))      #Vorläufiger GPIO Pin für den Rotary Encoder
 
 # Redirect URL for spotify OAuth
 redirect = "http://localhost:8888/callback"
