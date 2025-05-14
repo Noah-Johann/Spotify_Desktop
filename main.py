@@ -8,8 +8,9 @@ import keys
 
 if __name__ == "__main__":
     config.display = 0
-    gui.start_app()
     threading.Thread(target=keys.check_Button, daemon=True).start()
+    gui.start_app()
+ 
 
 
 
